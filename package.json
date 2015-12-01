@@ -1,0 +1,34 @@
+{
+  "name": "bobflux-gen",
+  "version": "0.0.1",
+  "description": "Generator for monkey files in bobflux application.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/karelsteinmetz/bobflux-gen.git"
+  },
+  "keywords": [
+    "bobflux"
+  ],
+  "bin": {
+    "bb": "./bin/bfg"
+  },
+  "dependencies": {
+    "commander": "^2.9.0",
+    "typescript": "1.8.0-dev.20151122"
+  },
+  "devDependencies": {
+    "graceful-fs": "^4.1.2",
+    "gulp": "^3.9.0",
+    "jasmine": "*",
+    "through2": "^2.0.0"
+  },
+  "scripts": {
+    "test": "jasmine"
+  },
+  "author": {
+    "name": "Karel Steinmetz",
+    "email": "karel.steinmetz@gmail.com"
+  },
+  "license": "MIT"
+}

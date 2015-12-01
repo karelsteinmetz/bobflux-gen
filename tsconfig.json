@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "commonjs",
+        "declaration": false,
+        "noImplicitAny": false,
+        "removeComments": false,
+        "moduleResolution": "node",
+        "noLib": false
+    },
+    "compileOnSave": false,
+    "filesGlob": [
+        "./cli.ts",
+        "./index.ts",
+        "./src/*.ts",
+        "./spec/*.ts",
+        "./node_modules/typescript/lib/typescript.d.ts",
+        "./typings/node/**/*.d.ts",
+        "./typings/jasmine/jasmine.d.ts",
+        "./typings/commander/commander.d.ts"
+    ],
+    "files": [
+        "./cli.ts",
+        "./index.ts",
+        "./src/cliMain.ts",
+        "./src/generator.ts",
+        "./src/cursorsGenerator.ts",
+        "./node_modules/typescript/lib/typescript.d.ts",
+        "./typings/node/node.d.ts",
+        "./typings/jasmine/jasmine.d.ts",
+        "./typings/commander/commander.d.ts"
+    ],
+    "exclude": []
+}

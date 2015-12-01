@@ -1,0 +1,4 @@
+/node_modules
+/src/**/*.js
+index.js
+cli.js
