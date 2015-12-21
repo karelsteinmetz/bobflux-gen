@@ -20,11 +20,15 @@ export default (project: g.IGenerationProject): g.IGenerationProcess => {
             for (let i = 0; i < sourceFiles.length; i++) {
                 let data = gatherSourceInfo(sourceFiles[i], tc, resolvePathStringLiteral);
                 project.writeFileCallback('cursors.ts', new Buffer(
-                    `import * as bf from 'bobflux';
+                    data.states
+                        .map(s =>
+                            `import * as bf from 'bobflux';
+import * as s from './state';
+
+export let appCursor: bf.ICursor<s.${s.typeName}> = bf.rootCursor
 `
-                        .concat(
-                        data.states
-                            .map(s => s.fields
+                            +
+                            s.fields
                                 .map(f => {
                                     return `
 export let ${f.name}Cursor: bf.ICursor<${ts.tokenToString(f.type)}> = {
@@ -32,7 +36,7 @@ export let ${f.name}Cursor: bf.ICursor<${ts.tokenToString(f.type)}> = {
 }`
                                 })
                                 .join('\n'))
-                            .join('\n')),
+                        .join('\n'),
                     'utf-8')
                 )
                 f();
@@ -66,17 +70,18 @@ export function gatherSourceInfo(source: ts.SourceFile, tc: ts.TypeChecker, reso
         states: []
     };
     function visit(n: ts.Node) {
-        // console.log('n.kind: ', n.kind);
+        console.log('n.kind: ', n.kind);
         if (n.kind === ts.SyntaxKind.SourceFile) { // 249
             let sf = <ts.SourceFile>n;
             result.filePath = sf.path;
         }
         if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
-            let id = <ts.ImportDeclaration>n;
-            let moduleSymbol = tc.getSymbolAtLocation(id.moduleSpecifier);
-            let fn = moduleSymbol.valueDeclaration.getSourceFile().fileName;
-            let bindings = id.importClause.namedBindings;
-            result.sourceDeps.push([moduleSymbol.name, fn]);
+            let im = <ts.ImportDeclaration>n;
+            console.log('im: ', im);
+        }
+        if (n.kind === ts.SyntaxKind.ImportClause) { //224
+            let ic = <ts.ImportClause>n;
+            console.log('ic: ', ic);
         }
         else if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
             let ce = <ts.InterfaceDeclaration>n;
