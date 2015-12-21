@@ -10,25 +10,28 @@
     },
     "compileOnSave": false,
     "filesGlob": [
+        "./examples/**/*.ts",
         "./cli.ts",
         "./index.ts",
         "./src/*.ts",
         "./spec/*.ts",
+        "!./node_modules/**/*",
         "./node_modules/typescript/lib/typescript.d.ts",
         "./typings/node/**/*.d.ts",
         "./typings/jasmine/jasmine.d.ts",
         "./typings/commander/commander.d.ts"
     ],
     "files": [
+        "./examples/state.ts",
         "./cli.ts",
         "./index.ts",
         "./src/cliMain.ts",
-        "./src/generator.ts",
         "./src/cursorsGenerator.ts",
+        "./src/generator.ts",
+        "./spec/cursorsGenerator.spec.ts",
         "./node_modules/typescript/lib/typescript.d.ts",
         "./typings/node/node.d.ts",
         "./typings/jasmine/jasmine.d.ts",
         "./typings/commander/commander.d.ts"
-    ],
-    "exclude": []
+    ]
 }

@@ -1,4 +1,7 @@
 /node_modules
 /src/**/*.js
+/examples/**/*.js
+/spec/**/*.js
+/typings/**/*
 index.js
 cli.js

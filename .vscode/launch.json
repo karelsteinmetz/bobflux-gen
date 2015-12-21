@@ -26,7 +26,7 @@
 			"request": "launch",
 			"program": "cli.js",
 			"stopOnEntry": false,
-			"args": ["c", "--stateFilesPattern '*/**/*State.ts'"],
+			"args": ["c", "-p --appStatePath 'state.ts'"],
 			"cwd": ".",
 			"runtimeExecutable": null,
 			"runtimeArgs": [
