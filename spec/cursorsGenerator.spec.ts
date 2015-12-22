@@ -17,6 +17,24 @@ describe('cursorsGenerator', () => {
                 })
             };
         });
+
+        it('imports bobflux as node module', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[0]).toBe(`import * as bf from 'bobflux';`);
+                    done();
+                });
+        });
+
+        it('imports related state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[1]).toBe(`import * as s from './stateWithNestedState.ts';`);
+                    done();
+                });
+        });
     });
 
     describe('stateWithBaseTypes', () => {
