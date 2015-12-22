@@ -23,7 +23,7 @@ export default (project: g.IGenerationProject): g.IGenerationProcess => {
                     data.states
                         .map(s =>
                             `import * as bf from 'bobflux';
-import * as s from './state';
+import * as s from './${s.fileName}';
 
 export let appCursor: bf.ICursor<s.${s.typeName}> = bf.rootCursor
 `
@@ -52,6 +52,7 @@ export interface IStateFieldData {
 
 export interface IStateData {
     typeName: string
+    fileName: string
     fields: IStateFieldData[]
 }
 
@@ -87,6 +88,7 @@ export function gatherSourceInfo(source: ts.SourceFile, tc: ts.TypeChecker, reso
             let ce = <ts.InterfaceDeclaration>n;
             result.states.push({
                 typeName: ce.name.text,
+                fileName: (<ts.SourceFile>ce.parent).fileName,
                 fields: []
             });
         }
@@ -113,7 +115,7 @@ function createCompilerHost(currentDirectory): ts.CompilerHost {
         }
         try {
             let filePath = filename === defaultLibFilename ? defaultLibFilename : path.join(currentDirectory, filename);
-            // console.log('getSourceFile - path: ', filePath);
+            console.log('getSourceFile - path: ', filePath);
             var text = fs.readFileSync(filePath).toString();
             // console.log('getSourceFile - text: ', text);
         } catch (e) {

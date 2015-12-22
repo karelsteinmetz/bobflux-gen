@@ -8,12 +8,36 @@ const path = pathPlatformDependent.posix;
 describe('cursorsGenerator', () => {
     beforeEach(() => {
     });
-
+    
     it('imports bobflux as node module', (done) => {
         g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
             let cursors = b.toString('utf8');
+            expect(cursors.split('\n')[0]).toBe(`import * as bf from 'bobflux';`);
+            done();
+        })).run();
+    });
+
+    it('imports related state', (done) => {
+        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
+            let cursors = b.toString('utf8');
+            expect(cursors.split('\n')[1]).toBe(`import * as s from './stateWithBaseTypes.ts';`);
+            done();
+        })).run();
+    });
+    
+    it('generates main appCursor and typed it', (done) => {
+        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
+            let cursors = b.toString('utf8');
+            expect(cursors.split('\n')[3]).toBe(`export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+            done();
+        })).run();
+    });
+    
+    it('generates state with base types', (done) => {
+        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
+            let cursors = b.toString('utf8');
             expect(cursors).toEqual(`import * as bf from 'bobflux';
-import * as s from './state';
+import * as s from './stateWithBaseTypes.ts';
 
 export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
