@@ -6,37 +6,51 @@ import * as pathPlatformDependent from 'path';
 const path = pathPlatformDependent.posix;
 
 describe('cursorsGenerator', () => {
-    beforeEach(() => {
-    });
-    
-    it('imports bobflux as node module', (done) => {
-        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-            let cursors = b.toString('utf8');
-            expect(cursors.split('\n')[0]).toBe(`import * as bf from 'bobflux';`);
-            done();
-        })).run();
-    });
+    describe('stateWithBaseTypes', () => {
+        let testCase: { do: () => Promise<string> };
 
-    it('imports related state', (done) => {
-        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-            let cursors = b.toString('utf8');
-            expect(cursors.split('\n')[1]).toBe(`import * as s from './stateWithBaseTypes.ts';`);
-            done();
-        })).run();
-    });
-    
-    it('generates main appCursor and typed it', (done) => {
-        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-            let cursors = b.toString('utf8');
-            expect(cursors.split('\n')[3]).toBe(`export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
-            done();
-        })).run();
-    });
-    
-    it('generates state with base types', (done) => {
-        g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-            let cursors = b.toString('utf8');
-            expect(cursors).toEqual(`import * as bf from 'bobflux';
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
+                        f(b.toString('utf8'));
+                    })).run();
+                })
+            };
+        });
+
+        it('imports bobflux as node module', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[0]).toBe(`import * as bf from 'bobflux';`);
+                    done();
+                });
+        });
+
+        it('imports related state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[1]).toBe(`import * as s from './stateWithBaseTypes.ts';`);
+                    done();
+                });
+        });
+
+        it('generates main appCursor and typed it', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[3]).toBe(`export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+                    done();
+                });
+        });
+
+        it('generates state with base types', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toEqual(`import * as bf from 'bobflux';
 import * as s from './stateWithBaseTypes.ts';
 
 export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
@@ -49,8 +63,10 @@ export let numberValueCursor: bf.ICursor<number> = {
     key: 'numberValue'
 }
 `);
-            done();
-        })).run();
+                    done();
+                });
+
+        });
     });
 
     function aProject(appStateName: string, writeFileCallback: (filename: string, b: Buffer) => void): gb.IGenerationProject {
