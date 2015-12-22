@@ -5,5 +5,5 @@ export interface IApplicationState extends bf.IState {
 }
 
 export interface INestedState extends bf.IState {
-    numberValue: string
+    numberValue: number
 }
