@@ -71,18 +71,18 @@ export function gatherSourceInfo(source: ts.SourceFile, tc: ts.TypeChecker, reso
         states: []
     };
     function visit(n: ts.Node) {
-        console.log('n.kind: ', n.kind);
+        // console.log('n.kind: ', n.kind);
         if (n.kind === ts.SyntaxKind.SourceFile) { // 249
             let sf = <ts.SourceFile>n;
             result.filePath = sf.path;
         }
         if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
             let im = <ts.ImportDeclaration>n;
-            console.log('im: ', im);
+            // console.log('im: ', im);
         }
         if (n.kind === ts.SyntaxKind.ImportClause) { //224
             let ic = <ts.ImportClause>n;
-            console.log('ic: ', ic);
+            // console.log('ic: ', ic);
         }
         else if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
             let ce = <ts.InterfaceDeclaration>n;
