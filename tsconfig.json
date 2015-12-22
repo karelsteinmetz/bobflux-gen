@@ -30,6 +30,7 @@
         "./src/cursorsGenerator.ts",
         "./src/generator.ts",
         "./spec/resources/stateWithBaseTypes.ts",
+        "./spec/resources/stateWithNestedState.ts",
         "./spec/cursorsGenerator.spec.ts",
         "./node_modules/typescript/lib/typescript.d.ts",
         "./typings/node/node.d.ts",

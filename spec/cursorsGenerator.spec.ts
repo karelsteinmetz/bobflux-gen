@@ -6,9 +6,20 @@ import * as pathPlatformDependent from 'path';
 const path = pathPlatformDependent.posix;
 
 describe('cursorsGenerator', () => {
-    describe('stateWithBaseTypes', () => {
-        let testCase: { do: () => Promise<string> };
+    let testCase: { do: () => Promise<string> };
+    describe('stateWithNestedState', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('stateWithNestedState.ts', (filename: string, b: Buffer) => {
+                        f(b.toString('utf8'));
+                    })).run();
+                })
+            };
+        });
+    });
 
+    describe('stateWithBaseTypes', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
