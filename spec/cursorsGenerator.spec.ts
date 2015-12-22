@@ -35,6 +35,24 @@ describe('cursorsGenerator', () => {
                     done();
                 });
         });
+        
+        it('generates main appCursor and typed it', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[3]).toBe(`export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+                    done();
+                });
+        });
+        
+        it('prints current state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    console.log(text);
+                    done();
+                });
+        });
     });
 
     describe('stateWithBaseTypes', () => {
