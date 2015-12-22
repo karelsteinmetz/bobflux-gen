@@ -36,7 +36,7 @@ export let ${f.name}Cursor: bf.ICursor<${ts.tokenToString(f.type)}> = {
 }`
                                 })
                                 .join('\n'))
-                        .join('\n'),
+                        .join('\n') + '\n',
                     'utf-8')
                 )
                 f();
