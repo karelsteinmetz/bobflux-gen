@@ -11,9 +11,10 @@ const mainStateIndex = 0;
 export default (project: g.IGenerationProject): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
-            console.log('Cursors generator runs in ' + project.appSourcesDirectory);
-            console.log('Application state file name: ' + project.appStateName);
-            let program = ts.createProgram([project.appStateName], project.tsOptions, createCompilerHost(project.appSourcesDirectory));
+            console.log('Cursors generator runs in: ' + path.dirname(project.appSourcesDirectory));
+            console.log('Application state file is: ' + path.basename(project.appSourcesDirectory));
+            console.log('Application state name is: ' + project.appStateName);
+            let program = ts.createProgram([path.basename(project.appSourcesDirectory)], project.tsOptions, createCompilerHost(path.dirname(project.appSourcesDirectory)));
             let tc = program.getTypeChecker();
             const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
             let sourceFiles = program.getSourceFiles();

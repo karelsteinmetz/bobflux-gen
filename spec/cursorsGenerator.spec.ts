@@ -11,7 +11,7 @@ describe('cursorsGenerator', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('stateWithNestedState.ts', (filename: string, b: Buffer) => {
+                    g.default(aProject('IApplicationState', 'stateWithNestedState.ts', (filename: string, b: Buffer) => {
                         f(b.toString('utf8'));
                     })).run();
                 })
@@ -131,7 +131,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
+                    g.default(aProject('IApplicationState', 'stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
                         f(b.toString('utf8'));
                     })).run();
                 })
@@ -188,11 +188,11 @@ export let numberValueCursor: bf.ICursor<number> = {
         });
     });
 
-    function aProject(appStateName: string, writeFileCallback: (filename: string, b: Buffer) => void): gb.IGenerationProject {
+    function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void): gb.IGenerationProject {
         return {
             dir: __dirname,
             appStateName: appStateName,
-            appSourcesDirectory: path.join(__dirname, 'resources'),
+            appSourcesDirectory: path.join(__dirname, 'resources', appFilePath),
             tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
             writeFileCallback: writeFileCallback
         }
