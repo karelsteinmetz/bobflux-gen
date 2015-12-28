@@ -7,6 +7,7 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
 
+const mainStateIndex = 0;
 export default (project: g.IGenerationProject): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
@@ -19,39 +20,47 @@ export default (project: g.IGenerationProject): g.IGenerationProcess => {
             // console.log('Found source files: ', sourceFiles);
             for (let i = 0; i < sourceFiles.length; i++) {
                 let data = gatherSourceInfo(sourceFiles[i], tc, resolvePathStringLiteral);
-                project.writeFileCallback('cursors.ts', new Buffer(
-                    data.states
-                        .map(s =>
-                            `import * as bf from 'bobflux';
-import * as s from './${s.fileName}';
+                let cursorsText =
+                    `import * as bf from 'bobflux';
+import * as s from './${data.fileName}';
 
-export let appCursor: bf.ICursor<s.${s.typeName}> = bf.rootCursor
-`
-                            +
+export let appCursor: bf.ICursor<s.${data.states[mainStateIndex].name}> = bf.rootCursor
+` +
+                    data.states
+                        .map((s, i) =>
                             s.fields
                                 .map(f => {
                                     return `
-export let ${f.name}Cursor: bf.ICursor<${ts.tokenToString(f.type)}> = {
+export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${f.isState ? 's.' + f.type : f.type}> = {
     key: '${f.name}'
 }`
                                 })
                                 .join('\n'))
-                        .join('\n') + '\n',
-                    'utf-8')
-                )
+                        .join('\n') + '\n';
+                project.writeFileCallback('cursors.ts', new Buffer(cursorsText, 'utf-8'))
                 f();
             }
         })
     }
 }
 
+function getStatePrefix(stateName: string, propName: string): string {
+    let s = stateName.replace('State', '');
+    s = s.indexOf('I', 0) === 0 && s.slice(1);
+    s = s.charAt(0).toLowerCase() + s.slice(1);
+    s += propName.charAt(0).toUpperCase() + propName.slice(1)
+    return s;
+}
+
 export interface IStateFieldData {
     name: string
-    type: ts.SyntaxKind
+    type: string
+    isState: boolean
 }
 
 export interface IStateData {
-    typeName: string
+    name: string
+    type: ts.SyntaxKind
     fileName: string
     fields: IStateFieldData[]
 }
@@ -60,6 +69,7 @@ export interface IStateSourceData {
     sourceFile: ts.SourceFile
     sourceDeps: [string, string][]
     filePath: string
+    fileName: string
     states: IStateData[]
 }
 
@@ -68,6 +78,7 @@ export function gatherSourceInfo(source: ts.SourceFile, tc: ts.TypeChecker, reso
         sourceFile: source,
         sourceDeps: [],
         filePath: null,
+        fileName: null,
         states: []
     };
     function visit(n: ts.Node) {
@@ -75,6 +86,7 @@ export function gatherSourceInfo(source: ts.SourceFile, tc: ts.TypeChecker, reso
         if (n.kind === ts.SyntaxKind.SourceFile) { // 249
             let sf = <ts.SourceFile>n;
             result.filePath = sf.path;
+            result.fileName = sf.fileName;
         }
         if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
             let im = <ts.ImportDeclaration>n;
@@ -87,15 +99,24 @@ export function gatherSourceInfo(source: ts.SourceFile, tc: ts.TypeChecker, reso
         else if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
             let ce = <ts.InterfaceDeclaration>n;
             result.states.push({
-                typeName: ce.name.text,
+                name: ce.name.text,
+                type: ce.kind,
                 fileName: (<ts.SourceFile>ce.parent).fileName,
                 fields: []
             });
         }
+        else if (n.kind === ts.SyntaxKind.TypeReference) { //151
+            // let tr = <ts.TypeReference>n;
+        }
         else if (n.kind === ts.SyntaxKind.PropertySignature) { //140
             let ps = <ts.PropertySignature>n;
-            let iface = result.states.filter(s => ps.parent.kind === ts.SyntaxKind.InterfaceDeclaration)[0];
-            iface.fields.push({ name: ps.name.getText(), type: ps.type.kind })
+            if (ps.parent.kind !== ts.SyntaxKind.InterfaceDeclaration)
+                throw 'Properties in Interfaces are only allowed.'
+            let iface = result.states.filter(s => s.name === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
+            if (ps.type.kind === ts.SyntaxKind.TypeReference)
+                iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true })
+            else
+                iface.fields.push({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind), isState: false })
         }
         ts.forEachChild(n, visit);
     }

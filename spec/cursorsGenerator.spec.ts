@@ -45,6 +45,78 @@ describe('cursorsGenerator', () => {
                 });
         });
         
+        it('generates cursor for string fields in app state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export let stringValueCursor: bf.ICursor<string> = {
+    key: 'stringValue'
+}
+`);
+                    done();
+                });
+        });        
+        
+        it('generates cursor for nested state in app state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export let stringValueCursor: bf.ICursor<string> = {
+    key: 'stringValue'
+}
+`);
+                    done();
+                });
+        });
+        
+        it('generates cursor for secondNested field with parent cursor prefix', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export let secondNestedStringValueCursor: bf.ICursor<string> = {
+    key: 'stringValue'
+}
+`);
+                    done();
+                });
+        });
+        
+        it('generates cursors for appState fields', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toBe(`import * as bf from 'bobflux';
+import * as s from './stateWithNestedState.ts';
+
+export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+
+export let stringValueCursor: bf.ICursor<string> = {
+    key: 'stringValue'
+}
+
+export let nestedCursor: bf.ICursor<s.INestedState> = {
+    key: 'nested'
+}
+
+export let secondNestedCursor: bf.ICursor<s.ISecondNestedState> = {
+    key: 'secondNested'
+}
+
+export let nestedNumberValueCursor: bf.ICursor<number> = {
+    key: 'numberValue'
+}
+
+export let secondNestedStringValueCursor: bf.ICursor<string> = {
+    key: 'stringValue'
+}
+`);
+                    done();
+                });
+        });
+        
         it('prints current state', (done) => {
             testCase
                 .do()
@@ -97,7 +169,7 @@ describe('cursorsGenerator', () => {
             testCase
                 .do()
                 .then(text => {
-                    expect(text).toEqual(`import * as bf from 'bobflux';
+                    expect(text).toBe(`import * as bf from 'bobflux';
 import * as s from './stateWithBaseTypes.ts';
 
 export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
