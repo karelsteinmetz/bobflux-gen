@@ -1,5 +1,6 @@
 import * as g from '../src/cursorsGenerator';
 import * as gb from '../src/generator';
+import * as tsa from '../src/tsAnalyzer';
 import * as ts from 'typescript';
 import * as fs from "fs";
 import * as pathPlatformDependent from 'path';
@@ -13,7 +14,7 @@ describe('cursorsGenerator', () => {
                 do: () => new Promise<string>((f, r) => {
                     g.default(aProject('IApplicationState', 'stateWithNestedState.ts', (filename: string, b: Buffer) => {
                         f(b.toString('utf8'));
-                    })).run();
+                    }), tsa.create()).run();
                 })
             };
         });
@@ -133,7 +134,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                 do: () => new Promise<string>((f, r) => {
                     g.default(aProject('IApplicationState', 'stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
                         f(b.toString('utf8'));
-                    })).run();
+                    }), tsa.create()).run();
                 })
             };
         });

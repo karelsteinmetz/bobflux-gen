@@ -2,6 +2,7 @@ import * as c from 'commander';
 import * as ts from 'typescript';
 import * as g from './generator';
 import * as cg from './cursorsGenerator';
+import * as tsa from './tsAnalyzer';
 import * as fs from 'fs';
 import * as pathPlatformDependent from 'path';
 
@@ -16,7 +17,7 @@ export function run() {
         .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
         .action((o) => {
             console.log('Cursors generator started', o);
-            cg.default(createProjectFromDir(currentDirectory(), o.appStatePath, o.appStateName))
+            cg.default(createProjectFromDir(currentDirectory(), o.appStatePath, o.appStateName), tsa.create())
                 .run()
                 .then(r => console.log('Cursors generator finished'))
         });
