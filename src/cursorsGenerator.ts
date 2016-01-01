@@ -24,28 +24,31 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             logger.debug('Found source files: ', sourceFiles);
             for (let i = 0; i < sourceFiles.length; i++) {
                 let data = tsAnalyzer.getSourceData(sourceFiles[i], tc, resolvePathStringLiteral);
-                let cursorsText =
-                    `import * as bf from 'bobflux';
-import * as s from './${data.fileName}';
-
-export let appCursor: bf.ICursor<s.${data.states[mainStateIndex].name}> = bf.rootCursor
-` +
-                    data.states
-                        .map((s, i) =>
-                            s.fields
-                                .map(f => {
-                                    return `
-export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${f.isState ? 's.' + f.type : f.type}> = {
-    key: '${f.name}'
-}`
-                                })
-                                .join('\n'))
-                        .join('\n') + '\n';
-                project.writeFileCallback('cursors.ts', new Buffer(cursorsText, 'utf-8'))
+                let fileContent = createText(data);
+                project.writeFileCallback('cursors.ts', new Buffer(fileContent, 'utf-8'))
                 f();
             }
         })
     }
+}
+
+function createText(data: tsa.IStateSourceData): string {
+    return `import * as bf from 'bobflux';
+import * as s from './${data.fileName}';
+
+export let appCursor: bf.ICursor<s.${data.states[mainStateIndex].name}> = bf.rootCursor
+` +
+        data.states
+            .map((s, i) =>
+                s.fields
+                    .map(f => {
+                        return `
+export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${f.isState ? 's.' + f.type : f.type}> = {
+    key: '${f.name}'
+}`
+                    })
+                    .join('\n'))
+            .join('\n') + '\n';
 }
 
 function getStatePrefix(stateName: string, propName: string): string {
