@@ -9,7 +9,7 @@ const path = pathPlatformDependent.posix;
 
 describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
-    let logger = log.create();
+    let logger = log.create(false, false, false, false);
 
     describe('stateWithNestedState', () => {
         beforeEach(() => {
