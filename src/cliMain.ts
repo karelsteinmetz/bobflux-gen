@@ -19,7 +19,7 @@ export function run() {
         .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
         .action((o) => {
             logger.info('Cursors generator started', o);
-            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger))
+            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger)
                 .run()
                 .then(r => logger.info('Cursors generator finished'))
         });
