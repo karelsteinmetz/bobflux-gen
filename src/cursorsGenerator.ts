@@ -1,6 +1,7 @@
 import * as g from './generator';
 import * as tsa from './tsAnalyzer';
 import * as tsch from './tsCompilerHost';
+import * as log from './logger';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as pathPlatformDependent from 'path';
@@ -10,17 +11,17 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
 
 const mainStateIndex = 0;
-export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer): g.IGenerationProcess => {
+export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
-            console.log('Cursors generator runs in: ' + path.dirname(project.appSourcesDirectory));
-            console.log('Application state file is: ' + path.basename(project.appSourcesDirectory));
-            console.log('Application state name is: ' + project.appStateName);
+            logger.info('Cursors generator runs in: ' + path.dirname(project.appSourcesDirectory));
+            logger.info('Application state file is: ' + path.basename(project.appSourcesDirectory));
+            logger.info('Application state name is: ' + project.appStateName);
             let program = ts.createProgram([path.basename(project.appSourcesDirectory)], project.tsOptions, tsch.createCompilerHost(path.dirname(project.appSourcesDirectory)));
             let tc = program.getTypeChecker();
             const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
             let sourceFiles = program.getSourceFiles();
-            // console.log('Found source files: ', sourceFiles);
+            logger.debug('Found source files: ', sourceFiles);
             for (let i = 0; i < sourceFiles.length; i++) {
                 let data = tsAnalyzer.getSourceData(sourceFiles[i], tc, resolvePathStringLiteral);
                 let cursorsText =

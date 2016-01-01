@@ -1,6 +1,7 @@
 import * as g from '../src/cursorsGenerator';
 import * as gb from '../src/generator';
 import * as tsa from '../src/tsAnalyzer';
+import * as log from '../src/logger';
 import * as ts from 'typescript';
 import * as fs from "fs";
 import * as pathPlatformDependent from 'path';
@@ -8,13 +9,15 @@ const path = pathPlatformDependent.posix;
 
 describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
+    let logger = log.create();
+
     describe('stateWithNestedState', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
                     g.default(aProject('IApplicationState', 'stateWithNestedState.ts', (filename: string, b: Buffer) => {
                         f(b.toString('utf8'));
-                    }), tsa.create()).run();
+                    }), tsa.create(logger), logger).run();
                 })
             };
         });
@@ -36,7 +39,7 @@ describe('cursorsGenerator', () => {
                     done();
                 });
         });
-        
+
         it('generates main appCursor and typed it', (done) => {
             testCase
                 .do()
@@ -45,7 +48,7 @@ describe('cursorsGenerator', () => {
                     done();
                 });
         });
-        
+
         it('generates cursor for string fields in app state', (done) => {
             testCase
                 .do()
@@ -57,8 +60,8 @@ export let stringValueCursor: bf.ICursor<string> = {
 `);
                     done();
                 });
-        });        
-        
+        });
+
         it('generates cursor for nested state in app state', (done) => {
             testCase
                 .do()
@@ -71,7 +74,7 @@ export let stringValueCursor: bf.ICursor<string> = {
                     done();
                 });
         });
-        
+
         it('generates cursor for secondNested field with parent cursor prefix', (done) => {
             testCase
                 .do()
@@ -84,7 +87,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                     done();
                 });
         });
-        
+
         it('generates cursors for appState fields', (done) => {
             testCase
                 .do()
@@ -117,7 +120,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                     done();
                 });
         });
-        
+
         it('prints current state', (done) => {
             testCase
                 .do()
@@ -134,7 +137,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                 do: () => new Promise<string>((f, r) => {
                     g.default(aProject('IApplicationState', 'stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
                         f(b.toString('utf8'));
-                    }), tsa.create()).run();
+                    }), tsa.create(logger), logger).run();
                 })
             };
         });

@@ -29,6 +29,7 @@
         "./src/cliMain.ts",
         "./src/cursorsGenerator.ts",
         "./src/generator.ts",
+        "./src/logger.ts",
         "./spec/resources/stateWithBaseTypes.ts",
         "./spec/resources/stateWithNestedState.ts",
         "./spec/cursorsGenerator.spec.ts",

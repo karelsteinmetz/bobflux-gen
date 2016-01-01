@@ -7,7 +7,6 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
 
-var lastLibPrecompiled;
 export function createCompilerHost(currentDirectory): ts.CompilerHost {
     function getCanonicalFileName(fileName) {
         return ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase();
@@ -18,9 +17,7 @@ export function createCompilerHost(currentDirectory): ts.CompilerHost {
         }
         try {
             let filePath = filename === defaultLibFilename ? defaultLibFilename : path.join(currentDirectory, filename);
-            console.log('getSourceFile - path: ', filePath);
             var text = fs.readFileSync(filePath).toString();
-            // console.log('getSourceFile - text: ', text);
         } catch (e) {
             return null;
         }
@@ -37,7 +34,6 @@ export function createCompilerHost(currentDirectory): ts.CompilerHost {
             return;
         }
         try {
-            console.log("Writing " + fileName);
             ts.sys.writeFile(fileName, data, false);
         } catch (e) {
             if (onError) {
