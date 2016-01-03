@@ -11,6 +11,46 @@ describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('stateWithExternalState', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithExternalState') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+        
+        it('imports related state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[0]).toBe(`import * as s from './stateWithExternalState.ts';`);
+                    done();
+                });
+        });
+
+        it('imports bobflux as node module', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[1]).toBe(`import * as bf from 'bobflux';`);
+                    done();
+                });
+        });
+
+        it('imports external state', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text.split('\n')[2]).toBe(`import * as ns from './stateWithNestedState';`);
+                    done();
+                });
+        });
+    });
+
     describe('stateWithNestedState', () => {
         beforeEach(() => {
             testCase = {
@@ -26,7 +66,7 @@ describe('cursorsGenerator', () => {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[0]).toBe(`import * as bf from 'bobflux';`);
+                    expect(text.split('\n')[1]).toBe(`import * as bf from 'bobflux';`);
                     done();
                 });
         });
@@ -35,7 +75,7 @@ describe('cursorsGenerator', () => {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[1]).toBe(`import * as s from './stateWithNestedState.ts';`);
+                    expect(text.split('\n')[0]).toBe(`import * as s from './stateWithNestedState.ts';`);
                     done();
                 });
         });
@@ -92,8 +132,8 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
             testCase
                 .do()
                 .then(text => {
-                    expect(text).toBe(`import * as bf from 'bobflux';
-import * as s from './stateWithNestedState.ts';
+                    expect(text).toBe(`import * as s from './stateWithNestedState.ts';
+import * as bf from 'bobflux';
 
 export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
@@ -136,7 +176,8 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
                     g.default(aProject('IApplicationState', 'stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-                        f(b.toString('utf8'));
+                        if (filename.indexOf('stateWithBaseTypes') !== -1)
+                            f(b.toString('utf8'));
                     }), tsa.create(logger), logger).run();
                 })
             };
@@ -146,7 +187,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[0]).toBe(`import * as bf from 'bobflux';`);
+                    expect(text.split('\n')[1]).toBe(`import * as bf from 'bobflux';`);
                     done();
                 });
         });
@@ -155,7 +196,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[1]).toBe(`import * as s from './stateWithBaseTypes.ts';`);
+                    expect(text.split('\n')[0]).toBe(`import * as s from './stateWithBaseTypes.ts';`);
                     done();
                 });
         });
@@ -173,8 +214,8 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
             testCase
                 .do()
                 .then(text => {
-                    expect(text).toBe(`import * as bf from 'bobflux';
-import * as s from './stateWithBaseTypes.ts';
+                    expect(text).toBe(`import * as s from './stateWithBaseTypes.ts';
+import * as bf from 'bobflux';
 
 export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
@@ -201,4 +242,12 @@ export let numberValueCursor: bf.ICursor<number> = {
             writeFileCallback: writeFileCallback
         }
     }
+    
+    // logger = {
+    //     info: (message: string, params?: any) => { },
+    //     warning: (message: string, params?: any) => { },
+    //     error: (message: string, params?: any) => { },
+    //     debug: (message: string, params?: any) => { (message.indexOf('Visited kind') === 0 || message.indexOf('Source result') === 0) && console.log(`Debug: ${message}`, params); }
+    // }
+            
 });

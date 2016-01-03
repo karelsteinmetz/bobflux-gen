@@ -15,12 +15,18 @@ export interface IStateData {
     fields: IStateFieldData[]
 }
 
+export interface IImportData {
+    prefix: string
+    filePath: string
+}
+
 export interface IStateSourceData {
     sourceFile: ts.SourceFile
     sourceDeps: [string, string][]
     filePath: string
     fileName: string
-    states: IStateData[]
+    states: IStateData[],
+    imports: IImportData[]
 }
 
 export interface ITsAnalyzer {
@@ -35,10 +41,23 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 sourceDeps: [],
                 filePath: null,
                 fileName: null,
-                states: []
+                states: [],
+                imports: []
             };
+            let currentImport: IImportData = null;
+
             function visit(n: ts.Node) {
                 logger.debug('Visited kind: ', n.kind);
+                if (n.kind === ts.SyntaxKind.StringLiteral) { //9
+                    let sl = <ts.StringLiteral>n;
+                    logger.debug('StringLiteral: ', sl);
+                    if (currentImport)
+                        currentImport.filePath = sl.text;
+                }
+                if (n.kind === ts.SyntaxKind.Identifier) { //69
+                    let iden = <ts.Identifier>n;
+                    logger.debug('Identifier: ', iden);
+                }
                 if (n.kind === ts.SyntaxKind.SourceFile) { // 249
                     let sf = <ts.SourceFile>n;
                     result.filePath = sf.path;
@@ -47,12 +66,20 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
                     let im = <ts.ImportDeclaration>n;
                     logger.debug('ImportDeclaration: ', im);
+                    if (currentImport)
+                        result.imports.push(currentImport);
+                    currentImport = { prefix: null, filePath: null }
                 }
                 if (n.kind === ts.SyntaxKind.ImportClause) { //224
                     let ic = <ts.ImportClause>n;
-                    logger.debug('ImportClause', ic);
+                    logger.debug('ImportClause: ', ic);
                 }
-                else if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
+                if (n.kind === ts.SyntaxKind.NamespaceImport) { //225
+                    let ni = <ts.NamespaceImport>n;
+                    logger.debug('NamespaceImport: ', ni);
+                    currentImport.prefix = ni.getText();
+                }
+                if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
                     let ce = <ts.InterfaceDeclaration>n;
                     result.states.push({
                         name: ce.name.text,
@@ -60,9 +87,13 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                         fileName: (<ts.SourceFile>ce.parent).fileName,
                         fields: []
                     });
+                    if (currentImport) {
+                        result.imports.push(currentImport)
+                        currentImport = null;
+                    }
                 }
                 else if (n.kind === ts.SyntaxKind.TypeReference) { //151
-                    logger.debug('TypeReference', n);
+                    logger.debug('TypeReference: ', n);
                 }
                 else if (n.kind === ts.SyntaxKind.PropertySignature) { //140
                     let ps = <ts.PropertySignature>n;

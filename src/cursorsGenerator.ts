@@ -23,9 +23,10 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             let sourceFiles = program.getSourceFiles();
             logger.debug('Found source files: ', sourceFiles);
             for (let i = 0; i < sourceFiles.length; i++) {
-                let data = tsAnalyzer.getSourceData(sourceFiles[i], tc, resolvePathStringLiteral);
+                let sourceFile = sourceFiles[i];
+                let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
                 let fileContent = createText(data);
-                project.writeFileCallback('cursors.ts', new Buffer(fileContent, 'utf-8'))
+                project.writeFileCallback(`${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`, new Buffer(fileContent, 'utf-8'))
                 f();
             }
         })
@@ -33,8 +34,8 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 }
 
 function createText(data: tsa.IStateSourceData): string {
-    return `import * as bf from 'bobflux';
-import * as s from './${data.fileName}';
+    return `import * as s from './${data.fileName}';
+${createImports(data.imports)}
 
 export let appCursor: bf.ICursor<s.${data.states[mainStateIndex].name}> = bf.rootCursor
 ` +
@@ -49,6 +50,15 @@ export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Curs
                     })
                     .join('\n'))
             .join('\n') + '\n';
+}
+
+function createImport(imp: tsa.IImportData): string {
+    return `import ${imp.prefix} from aaa;`;
+}
+
+function createImports(imports: tsa.IImportData[]): string {
+    return imports.map(i => `import ${i.prefix} from '${i.filePath}';`).join(`
+`);
 }
 
 function getStatePrefix(stateName: string, propName: string): string {
