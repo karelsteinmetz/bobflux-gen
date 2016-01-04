@@ -44,12 +44,16 @@ export let appCursor: bf.ICursor<s.${data.states[mainStateIndex].name}> = bf.roo
                 s.fields
                     .map(f => {
                         return `
-export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${f.isState ? 's.' + f.type : f.type}> = {
+export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${f.isState ? hasTypeImportPrefix(f.type) ? f.type : 's.' + f.type : f.type}> = {
     key: '${f.name}'
 }`
                     })
                     .join('\n'))
             .join('\n') + '\n';
+}
+
+function hasTypeImportPrefix(type: string): boolean {
+    return type.split('.').length > 1;
 }
 
 function createImport(imp: tsa.IImportData): string {

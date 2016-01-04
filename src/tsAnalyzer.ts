@@ -97,6 +97,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 }
                 else if (n.kind === ts.SyntaxKind.PropertySignature) { //140
                     let ps = <ts.PropertySignature>n;
+                    logger.debug('PropertySignature: ', ps);
                     if (ps.parent.kind !== ts.SyntaxKind.InterfaceDeclaration)
                         throw 'Properties in Interfaces are only allowed.'
                     let iface = result.states.filter(s => s.name === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
