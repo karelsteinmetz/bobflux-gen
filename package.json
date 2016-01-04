@@ -11,7 +11,7 @@
     "bobflux"
   ],
   "bin": {
-    "bb": "./bin/bfg"
+    "bfg": "./bin/bfg"
   },
   "dependencies": {
     "bobflux": "*",  
