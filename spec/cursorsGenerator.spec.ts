@@ -16,19 +16,19 @@ describe('cursorsGenerator', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
-                        g.default(aProject('IApplicationState', 'stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithBaseTypes') !== -1)
+                        g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithNestedState') !== -1)
                                 f(b.toString('utf8'));
                         }), tsa.create(logger), logger).run();
                     })
                 };
             });
 
-            it('generates state with base types', (done) => {
+            it('generates cursors for appState fields', (done) => {
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toBe(`import * as s from './stateWithBaseTypes.ts';
+                        expect(text).toBe(`import * as s from './stateWithNestedState.ts';
 import * as bf from 'bobflux';
 
 export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
@@ -37,13 +37,24 @@ export let stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
 }
 
-export let numberValueCursor: bf.ICursor<number> = {
+export let nestedCursor: bf.ICursor<s.INestedState> = {
+    key: 'nested'
+}
+
+export let secondNestedCursor: bf.ICursor<s.ISecondNestedState> = {
+    key: 'secondNested'
+}
+
+export let nestedNumberValueCursor: bf.ICursor<number> = {
     key: 'numberValue'
+}
+
+export let secondNestedStringValueCursor: bf.ICursor<string> = {
+    key: 'stringValue'
 }
 `);
                         done();
                     });
-
             });
         });
 
@@ -296,7 +307,8 @@ export let numberValueCursor: bf.ICursor<number> = {
         return {
             dir: __dirname,
             appStateName: appStateName,
-            appSourcesDirectory: path.join(__dirname, 'resources', appFilePath),
+            appSourcesDirectory: path.join(__dirname, 'resources'),
+            appStateFileName: path.basename(appFilePath),
             tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
             writeFileCallback: writeFileCallback
         }

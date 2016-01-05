@@ -14,21 +14,22 @@ const mainStateIndex = 0;
 export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
-            logger.info('Cursors generator runs in: ' + path.dirname(project.appSourcesDirectory));
-            logger.info('Application state file is: ' + path.basename(project.appSourcesDirectory));
+            logger.info('Cursors generator runs in: ' + project.appSourcesDirectory);
+            logger.info('Application state file is: ' + project.appStateFileName);
             logger.info('Application state name is: ' + project.appStateName);
-            let program = ts.createProgram([path.basename(project.appSourcesDirectory)], project.tsOptions, tsch.createCompilerHost(path.dirname(project.appSourcesDirectory)));
+            let program = ts.createProgram([project.appStateFileName], project.tsOptions, tsch.createCompilerHost(project.appSourcesDirectory));
             let tc = program.getTypeChecker();
             const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
             let sourceFiles = program.getSourceFiles();
-            logger.debug('Found source files: ', sourceFiles);
+            logger.info('Found source files: ', sourceFiles.map(s => s.path));
             for (let i = 0; i < sourceFiles.length; i++) {
                 let sourceFile = sourceFiles[i];
                 let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
-                let fileContent = createText(data);
-                project.writeFileCallback(`${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`, new Buffer(fileContent, 'utf-8'))
-                f();
+                let fileContent = createText(data, project.appSourcesDirectory);
+                let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
+                project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
             }
+            f();
         })
     }
 }

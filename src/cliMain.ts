@@ -18,7 +18,7 @@ export function run() {
         .option("-p, --appStatePath <appStatePath>", "define pattren for state files search (default is ./state.ts)")
         .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
         .action((o) => {
-            logger.info('Cursors generator started', o);
+            logger.info('Cursors generator started');
             cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger)
                 .run()
                 .then(r => logger.info('Cursors generator finished'))
@@ -34,7 +34,8 @@ export function createProjectFromDir(logger: log.ILogger, dirPath: string, appSt
     return {
         dir: dirPath.replace(/\\/g, '/'),
         appStateName: appStateName,
-        appSourcesDirectory: appStatePath,
+        appSourcesDirectory: dir,
+        appStateFileName: path.basename(appStatePath), 
         tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
         writeFileCallback: (filename: string, b: Buffer) => {
             let fullname = path.join(dir, filename);
