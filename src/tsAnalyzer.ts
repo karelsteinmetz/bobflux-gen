@@ -1,6 +1,9 @@
 import * as g from './generator';
 import * as log from './logger';
 import * as ts from 'typescript';
+import * as pathPlatformDependent from 'path';
+
+const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
 export interface IStateFieldData {
     name: string
@@ -60,8 +63,9 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 }
                 if (n.kind === ts.SyntaxKind.SourceFile) { // 249
                     let sf = <ts.SourceFile>n;
+                    logger.debug('Identifier: ', sf);
                     result.filePath = sf.path;
-                    result.fileName = sf.fileName;
+                    result.fileName = path.basename(sf.fileName);
                 }
                 if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
                     let im = <ts.ImportDeclaration>n;
