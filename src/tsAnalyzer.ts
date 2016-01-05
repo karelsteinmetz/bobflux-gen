@@ -65,7 +65,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     let sf = <ts.SourceFile>n;
                     logger.debug('Identifier: ', sf);
                     result.filePath = sf.path;
-                    result.fileName = path.basename(sf.fileName);
+                    result.fileName = path.basename(sf.fileName, '.ts');
                 }
                 if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
                     let im = <ts.ImportDeclaration>n;
