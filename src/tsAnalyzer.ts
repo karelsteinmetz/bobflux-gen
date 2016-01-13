@@ -107,6 +107,8 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     let iface = result.states.filter(s => s.name === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
                     if (ps.type.kind === ts.SyntaxKind.TypeReference)
                         iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true })
+                    else if (ps.type.kind === ts.SyntaxKind.ArrayType)
+                        iface.fields.push({ name: ps.name.getText(), type: `${(<ts.ArrayTypeNode>ps.type).elementType.getText()}[]`, isState: false })
                     else
                         iface.fields.push({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind), isState: false })
                 }

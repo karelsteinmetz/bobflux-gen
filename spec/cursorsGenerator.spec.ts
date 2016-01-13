@@ -11,6 +11,40 @@ describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('file stateWithArray', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', './stateWithArray.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithArray') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+
+        it('generates cursors for appState array fields', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as s from './stateWithArray';
+import * as bf from 'bobflux';
+
+export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+
+export let stringsCursor: bf.ICursor<string[]> = {
+    key: 'strings'
+}
+
+export let numbersCursor: bf.ICursor<INumber[]> = {
+    key: 'numbers'
+}
+`);
+                    done();
+                });
+        });
+    });
+
     describe('stateWithExternalState', () => {
         describe('file stateWithBaseTypes', () => {
             beforeEach(() => {

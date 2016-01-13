@@ -25,7 +25,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             for (let i = 0; i < sourceFiles.length; i++) {
                 let sourceFile = sourceFiles[i];
                 let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
-                let fileContent = createText(data, project.appSourcesDirectory);
+                let fileContent = createText(data);
                 let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
                 project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
             }
