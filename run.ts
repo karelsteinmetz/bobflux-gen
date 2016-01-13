@@ -1,0 +1,1 @@
+node bin/bfg c --appStatePath c:/dev-github/bobflux-gen/spec/resources/stateWithArray.ts
