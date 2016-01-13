@@ -5,3 +5,4 @@
 /typings/**/*
 index.js
 cli.js
+/spec/resources/*.cursors.ts
