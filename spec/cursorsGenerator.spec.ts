@@ -110,11 +110,11 @@ export let secondNestedCursor: bf.ICursor<s.ISecondNestedState> = {
 }
 
 export let nestedNumberValueCursor: bf.ICursor<number> = {
-    key: 'numberValue'
+    key: 'nested.numberValue'
 }
 
 export let secondNestedStringValueCursor: bf.ICursor<string> = {
-    key: 'stringValue'
+    key: 'secondNested.stringValue'
 }
 `);
                         done();
@@ -255,7 +255,7 @@ export let stringValueCursor: bf.ICursor<string> = {
                 .then(text => {
                     expect(text).toContain(`
 export let secondNestedStringValueCursor: bf.ICursor<string> = {
-    key: 'stringValue'
+    key: 'secondNested.stringValue'
 }
 `);
                     done();
@@ -284,11 +284,11 @@ export let secondNestedCursor: bf.ICursor<s.ISecondNestedState> = {
 }
 
 export let nestedNumberValueCursor: bf.ICursor<number> = {
-    key: 'numberValue'
+    key: 'nested.numberValue'
 }
 
 export let secondNestedStringValueCursor: bf.ICursor<string> = {
-    key: 'stringValue'
+    key: 'secondNested.stringValue'
 }
 `);
                     done();

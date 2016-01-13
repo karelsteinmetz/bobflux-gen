@@ -25,7 +25,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             for (let i = 0; i < sourceFiles.length; i++) {
                 let sourceFile = sourceFiles[i];
                 let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
-                let fileContent = createText(data);
+                let fileContent = createText(data, project.appStateName);
                 let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
                 project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
             }
@@ -34,26 +34,52 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
     }
 }
 
-function createText(data: tsa.IStateSourceData): string {
+function createText(data: tsa.IStateSourceData, mainStateName: string): string {
+    let mainStates = data.states.filter(s => s.name === mainStateName);
+    if (mainStates.length === 0)
+        return `Main state ${mainStateName} not found`;
+    let mainState = mainStates[0];
+    let nestedStates = data.states.filter(s => s.name !== mainStateName);
+    let prefixMap: { [stateName: string]: string } = {};
     return `import * as s from './${data.fileName}';
 ${createImports(data.imports)}
 
-export let appCursor: bf.ICursor<s.${data.states[mainStateIndex].name}> = bf.rootCursor
-` +
-        data.states
+export let appCursor: bf.ICursor<s.${mainState.name}> = bf.rootCursor
+`
+        + mainState.fields
+            .map(f => {
+                let pType = f.type;
+                prefixMap[f.type.replace('[]', '')] = f.name;
+                if (f.isState) {
+                    pType = isExternalState(f.type) ? f.type : 's.' + f.type;
+                }
+                return `
+export let ${f.name}Cursor: bf.ICursor<${pType}> = {
+    key: '${f.name}'
+}`
+            })
+            .join('\n')
+        + (nestedStates.length > 0 ? `
+`: '')
+        + nestedStates
             .map((s, i) =>
                 s.fields
                     .map(f => {
+                        let pType = f.type;
+                        prefixMap[f.type.replace('[]', '')] = f.name
+                        if (f.isState) {
+                            pType = isExternalState(f.type) ? f.type : 's.' + f.type;
+                        }
                         return `
-export let ${i === mainStateIndex ? f.name : getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${f.isState ? hasTypeImportPrefix(f.type) ? f.type : 's.' + f.type : f.type}> = {
-    key: '${f.name}'
+export let ${getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${pType}> = {
+    key: '${prefixMap[s.name]}.${f.name}'
 }`
                     })
                     .join('\n'))
             .join('\n') + '\n';
 }
 
-function hasTypeImportPrefix(type: string): boolean {
+function isExternalState(type: string): boolean {
     return type.split('.').length > 1;
 }
 
