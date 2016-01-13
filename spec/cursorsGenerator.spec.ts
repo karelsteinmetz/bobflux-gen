@@ -11,6 +11,36 @@ describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('file stateWithMap', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', './stateWithMap.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithMap') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+
+        it('generates cursors for appState which has map fields', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as s from './stateWithMap';
+import * as bf from 'bobflux';
+
+export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+
+export let stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
+    key: 'stringCounts'
+}
+`);
+                    done();
+                });
+        });
+    });
+
     describe('file stateWithArray', () => {
         beforeEach(() => {
             testCase = {
@@ -23,7 +53,7 @@ describe('cursorsGenerator', () => {
             };
         });
 
-        it('generates cursors for appState array fields', (done) => {
+        it('generates cursors for appState which has array fields', (done) => {
             testCase
                 .do()
                 .then(text => {
