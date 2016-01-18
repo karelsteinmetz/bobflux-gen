@@ -66,7 +66,6 @@ export let ${f.name}Cursor: bf.ICursor<${f.isArray ? pType + '[]' : pType}> = {
         + nestedStates
             .filter(s => !prefixMap[s.type])
             .map((s, i) => {
-                console.log('s', prefixMap)
                 let result = writeNestedType(s, prefixMap[s.name]);
                 return result.content;
             })
