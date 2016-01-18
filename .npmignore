@@ -1,0 +1,10 @@
+.*
+*.bat
+*.tgz
+spec
+examples
+typings
+tsconfig.json
+gulpfile.js
+tsd.json
+tscomp.js
