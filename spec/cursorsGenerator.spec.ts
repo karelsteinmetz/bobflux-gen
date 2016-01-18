@@ -11,6 +11,56 @@ describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('file stateTodos', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', './stateTodos.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateTodos') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+
+        it('generates cursors for todos', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as s from './stateTodos';
+import * as f from './flux';
+
+export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+
+export let todoSectionCursor: bf.ICursor<s.ITodosState> = {
+    key: 'todoSection'
+}
+
+export let undefinedIdCursor: bf.ICursor<number> = {
+    key: 'undefined.id'
+}
+
+export let undefinedIsDoneCursor: bf.ICursor<boolean> = {
+    key: 'undefined.isDone'
+}
+
+export let undefinedNameCursor: bf.ICursor<string> = {
+    key: 'undefined.name'
+}
+
+export let todoSectionEditedTodoCursor: bf.ICursor<s.ITodo> = {
+    key: 'todoSection.editedTodo'
+}
+
+export let todoSectionTodosCursor: bf.ICursor<ITodo[]> = {
+    key: 'todoSection.todos'
+}
+`);
+                    done();
+                });
+        });
+    });
+    
     describe('file stateWithMap', () => {
         beforeEach(() => {
             testCase = {
@@ -68,6 +118,10 @@ export let stringsCursor: bf.ICursor<string[]> = {
 
 export let numbersCursor: bf.ICursor<INumber[]> = {
     key: 'numbers'
+}
+
+export let numbersValueCursor: bf.ICursor<number> = {
+    key: 'numbers.value'
 }
 `);
                     done();

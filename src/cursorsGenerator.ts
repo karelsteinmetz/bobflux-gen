@@ -34,13 +34,15 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
     }
 }
 
+type PrefixMap = { [stateName: string]: string };
+
 function createText(data: tsa.IStateSourceData, mainStateName: string): string {
     let mainStates = data.states.filter(s => s.name === mainStateName);
     if (mainStates.length === 0)
         return `Main state ${mainStateName} not found`;
     let mainState = mainStates[0];
     let nestedStates = data.states.filter(s => s.name !== mainStateName);
-    let prefixMap: { [stateName: string]: string } = {};
+    let prefixMap: PrefixMap = {};
     return `import * as s from './${data.fileName}';
 ${createImports(data.imports)}
 
@@ -49,12 +51,12 @@ export let appCursor: bf.ICursor<s.${mainState.name}> = bf.rootCursor
         + mainState.fields
             .map(f => {
                 let pType = f.type;
-                prefixMap[f.type.replace('[]', '')] = f.name;
+                prefixMap[f.type] = f.name;
                 if (f.isState) {
                     pType = isExternalState(f.type) ? f.type : 's.' + f.type;
                 }
                 return `
-export let ${f.name}Cursor: bf.ICursor<${pType}> = {
+export let ${f.name}Cursor: bf.ICursor<${f.isArray ? pType + '[]' : pType}> = {
     key: '${f.name}'
 }`
             })
@@ -62,34 +64,51 @@ export let ${f.name}Cursor: bf.ICursor<${pType}> = {
         + (nestedStates.length > 0 ? `
 `: '')
         + nestedStates
-            .map((s, i) =>
-                s.fields
-                    .map(f => {
-                        let pType = f.type;
-                        prefixMap[f.type.replace('[]', '')] = f.name
-                        if (f.isState) {
-                            pType = isExternalState(f.type) ? f.type : 's.' + f.type;
-                        }
-                        return `
-export let ${getStatePrefix(s.name, f.name)}Cursor: bf.ICursor<${pType}> = {
-    key: '${prefixMap[s.name]}.${f.name}'
-}`
-                    })
-                    .join('\n'))
+            .filter(s => !prefixMap[s.type])
+            .map((s, i) => {
+                console.log('s', prefixMap)
+                let result = writeNestedType(s, prefixMap[s.name]);
+                return result.content;
+            })
             .join('\n') + '\n';
+}
+
+interface IResult {
+    prefixMap: PrefixMap,
+    content: string
+}
+
+function writeNestedType(data: tsa.IStateData, prefix: string): IResult {
+    let prefixMap: PrefixMap = {};
+    let content = data.fields
+        .map(f => {
+            let pType = f.type;
+            prefixMap[f.type] = prefix + '.' + f.name
+            if (f.isState) {
+                pType = isExternalState(f.type) ? f.type : 's.' + f.type;
+            }
+            return `
+export let ${getStatePrefix2(prefix, f.name)}Cursor: bf.ICursor<${f.isArray ? pType + '[]' : pType}> = {
+    key: '${prefix}.${f.name}'
+}`
+        })
+        .join('\n')
+    return { prefixMap: prefixMap, content: content };
 }
 
 function isExternalState(type: string): boolean {
     return type.split('.').length > 1;
 }
 
-function createImport(imp: tsa.IImportData): string {
-    return `import ${imp.prefix} from aaa;`;
-}
-
 function createImports(imports: tsa.IImportData[]): string {
     return imports.map(i => `import ${i.prefix} from '${i.filePath}';`).join(`
 `);
+}
+
+function getStatePrefix2(prefix: string, propName: string): string {
+    let s = prefix;
+    s += propName.charAt(0).toUpperCase() + propName.slice(1)
+    return s;
 }
 
 function getStatePrefix(stateName: string, propName: string): string {
