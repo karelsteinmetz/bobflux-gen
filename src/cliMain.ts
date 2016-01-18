@@ -35,9 +35,11 @@ export function createProjectFromDir(logger: log.ILogger, dirPath: string, appSt
         dir: dirPath.replace(/\\/g, '/'),
         appStateName: appStateName,
         appSourcesDirectory: dir,
-        appStateFileName: path.basename(appStatePath), 
+        appStateFileName: path.basename(appStatePath),
         tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
         writeFileCallback: (filename: string, b: Buffer) => {
+            logger.info('dir', dir);
+            logger.info('filename', filename);
             let fullname = path.join(dir, filename);
             logger.info("Writing started into " + fullname);
             mkpathsync(path.dirname(fullname));
