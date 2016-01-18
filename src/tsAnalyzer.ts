@@ -17,6 +17,7 @@ export interface IStateData {
     type: ts.SyntaxKind
     fileName: string
     fields: IStateFieldData[]
+    heritages: string[]
 }
 
 export interface IImportData {
@@ -30,7 +31,8 @@ export interface IStateSourceData {
     filePath: string
     fileName: string
     states: IStateData[],
-    imports: IImportData[]
+    imports: IImportData[],
+    fluxImportAlias: string
 }
 
 export interface ITsAnalyzer {
@@ -46,7 +48,8 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 filePath: null,
                 fileName: null,
                 states: [],
-                imports: []
+                imports: [],
+                fluxImportAlias: null
             };
             let currentImport: IImportData = null;
 
@@ -90,7 +93,8 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                         name: ce.name.text,
                         type: ce.kind,
                         fileName: (<ts.SourceFile>ce.parent).fileName,
-                        fields: []
+                        fields: [],
+                        heritages: ce.heritageClauses ? ce.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : []
                     });
                     if (currentImport) {
                         result.imports.push(currentImport)

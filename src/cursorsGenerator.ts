@@ -41,12 +41,15 @@ function createText(data: tsa.IStateSourceData, mainStateName: string): string {
     if (mainStates.length === 0)
         return `Main state ${mainStateName} not found`;
     let mainState = mainStates[0];
+    let foundStateHeritages = mainState.heritages.filter(h => h.indexOf('.IState') !== -1)
+    let bobfluxPrefix = (foundStateHeritages.length === 0) ? 'bf': foundStateHeritages[0].split('.')[0];
+    console.log('mainState', mainState.heritages);
     let nestedStates = data.states.filter(s => s.name !== mainStateName);
     let prefixMap: PrefixMap = {};
     return `import * as s from './${data.fileName}';
 ${createImports(data.imports)}
 
-export let appCursor: bf.ICursor<s.${mainState.name}> = bf.rootCursor
+export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.name}> = ${bobfluxPrefix}.rootCursor
 `
         + mainState.fields
             .map(f => {
@@ -56,7 +59,7 @@ export let appCursor: bf.ICursor<s.${mainState.name}> = bf.rootCursor
                     pType = isExternalState(f.type) ? f.type : 's.' + f.type;
                 }
                 return `
-export let ${f.name}Cursor: bf.ICursor<${f.isArray ? pType + '[]' : pType}> = {
+export let ${f.name}Cursor: ${bobfluxPrefix}.ICursor<${f.isArray ? pType + '[]' : pType}> = {
     key: '${f.name}'
 }`
             })
@@ -66,7 +69,7 @@ export let ${f.name}Cursor: bf.ICursor<${f.isArray ? pType + '[]' : pType}> = {
         + nestedStates
             .filter(s => !prefixMap[s.type])
             .map((s, i) => {
-                let result = writeNestedType(s, prefixMap[s.name]);
+                let result = writeNestedType(s, prefixMap[s.name], bobfluxPrefix);
                 return result.content;
             })
             .join('\n') + '\n';
@@ -77,7 +80,7 @@ interface IResult {
     content: string
 }
 
-function writeNestedType(data: tsa.IStateData, prefix: string): IResult {
+function writeNestedType(data: tsa.IStateData, prefix: string, bobfluxPrefix: string): IResult {
     let prefixMap: PrefixMap = {};
     let content = data.fields
         .map(f => {
@@ -87,7 +90,7 @@ function writeNestedType(data: tsa.IStateData, prefix: string): IResult {
                 pType = isExternalState(f.type) ? f.type : 's.' + f.type;
             }
             return `
-export let ${getStatePrefix2(prefix, f.name)}Cursor: bf.ICursor<${f.isArray ? pType + '[]' : pType}> = {
+export let ${getStatePrefix2(prefix, f.name)}Cursor: ${bobfluxPrefix}.ICursor<${f.isArray ? pType + '[]' : pType}> = {
     key: '${prefix}.${f.name}'
 }`
         })

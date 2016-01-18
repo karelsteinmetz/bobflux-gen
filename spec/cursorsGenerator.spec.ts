@@ -30,29 +30,29 @@ describe('cursorsGenerator', () => {
                     expect(text).toContain(`import * as s from './stateTodos';
 import * as f from './flux';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export let appCursor: f.ICursor<s.IApplicationState> = f.rootCursor
 
-export let todoSectionCursor: bf.ICursor<s.ITodosState> = {
+export let todoSectionCursor: f.ICursor<s.ITodosState> = {
     key: 'todoSection'
 }
 
-export let undefinedIdCursor: bf.ICursor<number> = {
+export let undefinedIdCursor: f.ICursor<number> = {
     key: 'undefined.id'
 }
 
-export let undefinedIsDoneCursor: bf.ICursor<boolean> = {
+export let undefinedIsDoneCursor: f.ICursor<boolean> = {
     key: 'undefined.isDone'
 }
 
-export let undefinedNameCursor: bf.ICursor<string> = {
+export let undefinedNameCursor: f.ICursor<string> = {
     key: 'undefined.name'
 }
 
-export let todoSectionEditedTodoCursor: bf.ICursor<s.ITodo> = {
+export let todoSectionEditedTodoCursor: f.ICursor<s.ITodo> = {
     key: 'todoSection.editedTodo'
 }
 
-export let todoSectionTodosCursor: bf.ICursor<ITodo[]> = {
+export let todoSectionTodosCursor: f.ICursor<ITodo[]> = {
     key: 'todoSection.todos'
 }
 `);
