@@ -26,8 +26,10 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                 let sourceFile = sourceFiles[i];
                 let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
                 let fileContent = createText(data, project.appStateName);
-                let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
-                project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
+                if (fileContent) {
+                    let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
+                    project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
+                }
             }
             f();
         })
@@ -39,10 +41,10 @@ type PrefixMap = { [stateName: string]: string };
 function createText(data: tsa.IStateSourceData, mainStateName: string): string {
     let mainStates = data.states.filter(s => s.name === mainStateName);
     if (mainStates.length === 0)
-        return `Main state ${mainStateName} not found`;
+        return null;
     let mainState = mainStates[0];
     let foundStateHeritages = mainState.heritages.filter(h => h.indexOf('.IState') !== -1)
-    let bobfluxPrefix = (foundStateHeritages.length === 0) ? 'bf': foundStateHeritages[0].split('.')[0];
+    let bobfluxPrefix = (foundStateHeritages.length === 0) ? 'bf' : foundStateHeritages[0].split('.')[0];
     console.log('mainState', mainState.heritages);
     let nestedStates = data.states.filter(s => s.name !== mainStateName);
     let prefixMap: PrefixMap = {};
