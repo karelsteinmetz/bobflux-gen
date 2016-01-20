@@ -40,6 +40,7 @@ export function createProjectFromDir(logger: log.ILogger, dirPath: string, appSt
         writeFileCallback: (filename: string, b: Buffer) => {
             logger.info('dir', dir);
             logger.info('filename', filename);
+            logger.info('dir rel', __dirname);
             let fullname = path.join(dir, filename);
             logger.info("Writing started into " + fullname);
             mkpathsync(path.dirname(fullname));

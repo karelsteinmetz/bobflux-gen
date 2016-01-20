@@ -13,7 +13,7 @@ export interface IStateFieldData {
 }
 
 export interface IStateData {
-    name: string
+    typeName: string
     type: ts.SyntaxKind
     fileName: string
     fields: IStateFieldData[]
@@ -90,7 +90,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
                     let ce = <ts.InterfaceDeclaration>n;
                     result.states.push({
-                        name: ce.name.text,
+                        typeName: ce.name.text,
                         type: ce.kind,
                         fileName: (<ts.SourceFile>ce.parent).fileName,
                         fields: [],
@@ -109,7 +109,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     logger.debug('PropertySignature: ', ps);
                     if (ps.parent.kind !== ts.SyntaxKind.InterfaceDeclaration)
                         throw 'Properties in Interfaces are only allowed.'
-                    let iface = result.states.filter(s => s.name === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
+                    let iface = result.states.filter(s => s.typeName === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
                     if (ps.type.kind === ts.SyntaxKind.TypeReference)
                         iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true })
                     else if (ps.type.kind === ts.SyntaxKind.ArrayType)

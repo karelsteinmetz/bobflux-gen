@@ -36,24 +36,24 @@ export let todoSectionCursor: f.ICursor<s.ITodosState> = {
     key: 'todoSection'
 }
 
-export let undefinedIdCursor: f.ICursor<number> = {
-    key: 'undefined.id'
-}
-
-export let undefinedIsDoneCursor: f.ICursor<boolean> = {
-    key: 'undefined.isDone'
-}
-
-export let undefinedNameCursor: f.ICursor<string> = {
-    key: 'undefined.name'
-}
-
 export let todoSectionEditedTodoCursor: f.ICursor<s.ITodo> = {
     key: 'todoSection.editedTodo'
 }
 
-export let todoSectionTodosCursor: f.ICursor<ITodo[]> = {
+export let todoSectionTodosCursor: f.ICursor<s.ITodo[]> = {
     key: 'todoSection.todos'
+}
+
+export let todoSectionEditedTodoIdCursor: f.ICursor<number> = {
+    key: 'todoSection.editedTodo.id'
+}
+
+export let todoSectionEditedTodoIsDoneCursor: f.ICursor<boolean> = {
+    key: 'todoSection.editedTodo.isDone'
+}
+
+export let todoSectionEditedTodoNameCursor: f.ICursor<string> = {
+    key: 'todoSection.editedTodo.name'
 }
 `);
                     done();
@@ -116,12 +116,8 @@ export let stringsCursor: bf.ICursor<string[]> = {
     key: 'strings'
 }
 
-export let numbersCursor: bf.ICursor<INumber[]> = {
+export let numbersCursor: bf.ICursor<s.INumber[]> = {
     key: 'numbers'
-}
-
-export let numbersValueCursor: bf.ICursor<number> = {
-    key: 'numbers.value'
 }
 `);
                     done();

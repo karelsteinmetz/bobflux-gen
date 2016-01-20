@@ -2,6 +2,7 @@ import * as g from './generator';
 import * as tsa from './tsAnalyzer';
 import * as tsch from './tsCompilerHost';
 import * as log from './logger';
+import * as nameUnifier from './nameUnifier';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as pathPlatformDependent from 'path';
@@ -39,65 +40,50 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 type PrefixMap = { [stateName: string]: string };
 
 function createText(data: tsa.IStateSourceData, mainStateName: string): string {
-    let mainStates = data.states.filter(s => s.name === mainStateName);
+    let mainStates = data.states.filter(s => s.typeName === mainStateName);
     if (mainStates.length === 0)
         return null;
     let mainState = mainStates[0];
     let foundStateHeritages = mainState.heritages.filter(h => h.indexOf('.IState') !== -1)
     let bobfluxPrefix = (foundStateHeritages.length === 0) ? 'bf' : foundStateHeritages[0].split('.')[0];
-    console.log('mainState', mainState.heritages);
-    let nestedStates = data.states.filter(s => s.name !== mainStateName);
+    let nestedStates = data.states.filter(s => s.typeName !== mainStateName);
     let prefixMap: PrefixMap = {};
-    return `import * as s from './${data.fileName}';
+    let stateImportKey = 's';
+    let content = `import * as ${stateImportKey} from './${data.fileName}';
 ${createImports(data.imports)}
 
-export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.name}> = ${bobfluxPrefix}.rootCursor
-`
-        + mainState.fields
-            .map(f => {
-                let pType = f.type;
-                prefixMap[f.type] = f.name;
-                if (f.isState) {
-                    pType = isExternalState(f.type) ? f.type : 's.' + f.type;
-                }
-                return `
-export let ${f.name}Cursor: ${bobfluxPrefix}.ICursor<${f.isArray ? pType + '[]' : pType}> = {
-    key: '${f.name}'
-}`
-            })
-            .join('\n')
-        + (nestedStates.length > 0 ? `
-`: '')
-        + nestedStates
-            .filter(s => !prefixMap[s.type])
-            .map((s, i) => {
-                let result = writeNestedType(s, prefixMap[s.name], bobfluxPrefix);
-                return result.content;
-            })
-            .join('\n') + '\n';
+export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobfluxPrefix}.rootCursor
+
+`;
+    function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
+        let nexts: INextIteration[] = [];
+        let content = state.fields.map(f => {
+            let key = `${prefix === null ? f.name : `${prefix}.${f.name}`}`;
+            let fType = f.isArray ? `${f.type}[]` : f.type;
+            let states = data.states.filter(s => s.typeName === f.type);
+            if (states.length > 0)
+                fType = `${stateImportKey}.${fType}`;
+            let ct = `export let ${prefix === null ? f.name : nameUnifier.getStatePrefixFromKeyPrefix(prefix, f.name)}Cursor: ${bobfluxPrefix}.ICursor<${fType}> = {
+    key: '${key}'
+}
+`;
+            if (f.isArray)
+                return ct;
+            if (states.length > 0)
+                nexts.push({ state: states[0], prefix: key });
+            if (states.length > 1)
+                throw 'Two states with same name could not be parsed. Compilator prevents this error.'
+            return ct;
+        }).join('\n');
+        return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateParams(n.state, bobfluxPrefix, n.prefix)).join('\n');
+    }
+    content += createCursorsForStateParams(mainState, bobfluxPrefix)
+    return content;
 }
 
-interface IResult {
-    prefixMap: PrefixMap,
-    content: string
-}
-
-function writeNestedType(data: tsa.IStateData, prefix: string, bobfluxPrefix: string): IResult {
-    let prefixMap: PrefixMap = {};
-    let content = data.fields
-        .map(f => {
-            let pType = f.type;
-            prefixMap[f.type] = prefix + '.' + f.name
-            if (f.isState) {
-                pType = isExternalState(f.type) ? f.type : 's.' + f.type;
-            }
-            return `
-export let ${getStatePrefix2(prefix, f.name)}Cursor: ${bobfluxPrefix}.ICursor<${f.isArray ? pType + '[]' : pType}> = {
-    key: '${prefix}.${f.name}'
-}`
-        })
-        .join('\n')
-    return { prefixMap: prefixMap, content: content };
+interface INextIteration {
+    state: tsa.IStateData
+    prefix: string
 }
 
 function isExternalState(type: string): boolean {
@@ -107,18 +93,4 @@ function isExternalState(type: string): boolean {
 function createImports(imports: tsa.IImportData[]): string {
     return imports.map(i => `import ${i.prefix} from '${i.filePath}';`).join(`
 `);
-}
-
-function getStatePrefix2(prefix: string, propName: string): string {
-    let s = prefix;
-    s += propName.charAt(0).toUpperCase() + propName.slice(1)
-    return s;
-}
-
-function getStatePrefix(stateName: string, propName: string): string {
-    let s = stateName.replace('State', '');
-    s = s.indexOf('I', 0) === 0 && s.slice(1);
-    s = s.charAt(0).toLowerCase() + s.slice(1);
-    s += propName.charAt(0).toUpperCase() + propName.slice(1)
-    return s;
 }
