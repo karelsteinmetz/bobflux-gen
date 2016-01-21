@@ -48,7 +48,7 @@ function createText(data: tsa.IStateSourceData, mainStateName: string): string {
     let bobfluxPrefix = (foundStateHeritages.length === 0) ? 'bf' : foundStateHeritages[0].split('.')[0];
     let nestedStates = data.states.filter(s => s.typeName !== mainStateName);
     let prefixMap: PrefixMap = {};
-    let stateImportKey = 's';
+    const stateImportKey = 's';
     let content = `import * as ${stateImportKey} from './${data.fileName}';
 ${createImports(data.imports)}
 

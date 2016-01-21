@@ -38,7 +38,53 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 }
 
 type PrefixMap = { [stateName: string]: string };
+interface INextIteration {
+    state: tsa.IStateData
+    prefix: string
+}
 
 function createText(data: tsa.IStateSourceData, mainStateName: string): string {
-    return 'There will be builders.';
+    const stateImportKey = 's';
+    return `import * as ${stateImportKey} from './${data.fileName}';
+${createImports(data.imports)}
+
+`
+        + data.states.map(state => {
+            let nexts: INextIteration[] = [];
+            let name = `${nameUnifier.removeIfacePrefix(state.typeName)}Builder`;
+            let stateName = `${stateImportKey}.${state.typeName}`;
+            let content = `export class ${name} {
+    private state: ${stateName} = ${stateImportKey}.default();
+
+`
+            content += state.fields.map(f => {
+                let fType = f.isArray ? `${f.type}[]` : f.type;
+                let states = data.states.filter(s => s.typeName === f.type);
+                if (states.length > 0)
+                    fType = `${stateImportKey}.${fType}`;
+                let ct = `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', f.name)}(${f.name}: ${fType}): ${name} {
+        this.state.${f.name} = ${f.name};
+        return this;
+    };
+`
+                return ct;
+            }).join('\n');
+            content += `
+    public build(): ${stateName} {
+`;
+            if (mainStateName === state.typeName)
+                content +=
+                    `        s.bootstrap(this.state);
+`
+            content +=
+                `        return this.state;
+    }
+}
+`
+            return content;
+        }).join('\n')
+}
+
+function createImports(imports: tsa.IImportData[]): string {
+    return imports.map(i => `import ${i.prefix} from '${i.filePath}'; `).join('\n');
 }

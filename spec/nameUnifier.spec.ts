@@ -7,4 +7,11 @@ describe('nameUnifier', () => {
                 .toBe('somePrefixPropertyName');
         });
     });
+
+    describe('removeIfacePrefix', () => {
+        it('removes prefix', () => {
+            expect(nu.removeIfacePrefix('IAppState', 'I'))
+                .toBe('AppState');
+        });
+    });
 });
