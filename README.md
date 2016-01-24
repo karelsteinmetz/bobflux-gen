@@ -16,7 +16,7 @@ Inspired by [bobril-build](https://github.com/Bobris/bobril-build/blob/master/RE
 ## How To Generate StateBuilders for your tests
 1. run generation:
   ```
-  node node_modules/bobflux-gen/bin/bfg b --appStatePath src/states.ts --appStateName IApplicationState
+  node node_modules/bobflux-gen/bin/bfg b --appStatePath src/states.ts --appStateName IApplicationState --specRelativePath ../spec/
   ```
 2. just look at all *.builders.ts
 
