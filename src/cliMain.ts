@@ -30,9 +30,10 @@ export function run() {
         .description("generates builders for each state")
         .option("-p, --appStatePath <appStatePath>", "define pattren for state files search (default is ./state.ts)")
         .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
+        .option("-s, --specRelativePath <specRelativePath>", "define spec directory relative path from appStatePath (default is next to states)")
         .action((o) => {
             logger.info('Builders generator started');
-            bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger)
+            bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
                 .run()
                 .then(r => logger.info('Builders generator finished'))
         });
@@ -42,15 +43,17 @@ export function run() {
     c.parse(process.argv);
 }
 
-export function createProjectFromDir(logger: log.ILogger, dirPath: string, appStatePath: string = path.join(__dirname, './state.ts'), appStateName: string = 'IApplicationState'): g.IGenerationProject {
-    let dir = path.dirname(appStatePath);
+export function createProjectFromDir(logger: log.ILogger, dirPath: string, appStatePath: string = path.join(__dirname, './state.ts'), appStateName: string = 'IApplicationState', relativePath: string = null): g.IGenerationProject {
     return {
         dir: dirPath.replace(/\\/g, '/'),
         appStateName: appStateName,
-        appSourcesDirectory: dir,
+        appSourcesDirectory: path.dirname(appStatePath),
         appStateFileName: path.basename(appStatePath),
         tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
+        relativePath: relativePath,
         writeFileCallback: (filename: string, b: Buffer) => {
+            if (relativePath)
+                filename = path.join(path.dirname(filename), relativePath, path.basename(filename));
             logger.info("Writing started into " + filename);
             mkpathsync(path.dirname(filename));
             fs.writeFileSync(filename, b);

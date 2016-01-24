@@ -26,7 +26,13 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             for (let i = 0; i < sourceFiles.length; i++) {
                 let sourceFile = sourceFiles[i];
                 let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
-                let fileContent = createText(data, project.appStateName);
+                let relativePath = '';
+                if (project.relativePath) {
+                    relativePath = path.join(path.dirname(sourceFile.path), project.relativePath);
+                    relativePath = path.relative(relativePath, path.dirname(sourceFile.path));
+                    logger.info('Relative path: ', relativePath);
+                }
+                let fileContent = createText(data, project.appStateName, relativePath);
                 if (fileContent) {
                     let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.builders.ts`;
                     project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
@@ -43,10 +49,10 @@ interface INextIteration {
     prefix: string
 }
 
-function createText(data: tsa.IStateSourceData, mainStateName: string): string {
+function createText(data: tsa.IStateSourceData, mainStateName: string, relativePath: string): string {
     const stateImportKey = 's';
-    return `import * as ${stateImportKey} from './${data.fileName}';
-${createImports(data.imports)}
+    return `import * as ${stateImportKey} from '${relativePath == '' ? './' + data.fileName : path.join(relativePath, data.fileName)}';
+${createImports(data.imports, relativePath)}
 
 `
         + data.states.map(state => {
@@ -85,6 +91,6 @@ ${createImports(data.imports)}
         }).join('\n')
 }
 
-function createImports(imports: tsa.IImportData[]): string {
-    return imports.map(i => `import ${i.prefix} from '${i.filePath}'; `).join('\n');
+function createImports(imports: tsa.IImportData[], relativePath: string): string {
+    return imports.map(i => `import ${i.prefix} from '${path.join(relativePath, i.filePath)}'; `).join('\n');
 }

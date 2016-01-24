@@ -6,6 +6,7 @@ export interface IGenerationProject {
     appSourcesDirectory: string
     appStateFileName: string
     tsOptions: ts.CompilerOptions
+    relativePath?: string
     writeFileCallback: (filename: string, b: Buffer) => void
 }
 
