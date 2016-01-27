@@ -39,5 +39,13 @@ describe('nameUnifier', () => {
         it('gets directory', () => {
             expect(path.dirname('c:/app/app/src/state.ts')).toBe('c:/app/app/src');
         });
+        
+        it('gets relative from absolute paths', () => {
+            expect(path.relative('c:\\app\\app\\src\\state.ts', 'c:/app/app/src/state.ts')).toBe('');
+        });
+                
+        it('gets relative from relative paths', () => {
+            expect(path.relative('app\\src\\state.ts', './app/src/state.ts')).toBe('');
+        });
     });
 });

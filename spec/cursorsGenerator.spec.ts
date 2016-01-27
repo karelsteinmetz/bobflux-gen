@@ -57,7 +57,8 @@ export let todoSectionEditedTodoNameCursor: f.ICursor<string> = {
 }
 `);
                     done();
-                });
+                })
+                .catch(e => { expect(e).toBeUndefined();  done();});
         });
     });
     
@@ -126,7 +127,7 @@ export let numbersCursor: bf.ICursor<s.INumber[]> = {
     });
 
     describe('stateWithExternalState', () => {
-        describe('file stateWithBaseTypes', () => {
+        xdescribe('file stateWithBaseTypes', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
@@ -176,7 +177,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
-                        g.default(aProject('IApplicationState', 'stateWithExternalState', (filename: string, b: Buffer) => {
+                        g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
                             if (filename.indexOf('stateWithExternalState') !== -1)
                                 f(b.toString('utf8'));
                         }), tsa.create(logger), logger).run();
@@ -190,7 +191,8 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                     .then(text => {
                         expect(text.split('\n')[0]).toBe(`import * as s from './stateWithExternalState';`);
                         done();
-                    });
+                    })
+                    .catch(e => { console.log(e); expect(e).toBeUndefined(); done(); });
             });
 
             it('imports bobflux as node module', (done) => {

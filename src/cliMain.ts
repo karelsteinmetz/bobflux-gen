@@ -44,11 +44,12 @@ export function run() {
 }
 
 export function createProjectFromDir(logger: log.ILogger, dirPath: string, appStatePath: string = path.join(__dirname, './state.ts'), appStateName: string = 'IApplicationState', relativePath: string = null): g.IGenerationProject {
+    let statePath = path.normalize(appStatePath.replace(/\\/g, '/'));
     return {
         dir: dirPath.replace(/\\/g, '/'),
         appStateName: appStateName,
-        appSourcesDirectory: path.dirname(appStatePath),
-        appStateFileName: path.basename(appStatePath),
+        appSourcesDirectory: path.dirname(statePath),
+        appStateFileName: path.basename(statePath),
         tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
         relativePath: relativePath,
         writeFileCallback: (filename: string, b: Buffer) => {

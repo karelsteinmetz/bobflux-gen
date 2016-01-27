@@ -9,9 +9,10 @@ import * as pathPlatformDependent from 'path';
 
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
-var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
+var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, '/')), "lib.es6.d.ts");
 
 const mainStateIndex = 0;
+const stateNotFoundError = 'Main state file could not be found.';
 export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
@@ -23,15 +24,18 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
             let sourceFiles = program.getSourceFiles();
             logger.info('Found source files: ', sourceFiles.map(s => s.path));
-            for (let i = 0; i < sourceFiles.length; i++) {
-                let sourceFile = sourceFiles[i];
-                let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
-                let fileContent = createText(data, project.appStateName);
-                if (fileContent) {
-                    let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
-                    project.writeFileCallback(cursorsFile, new Buffer(fileContent, 'utf-8'))
-                }
+            let fullPath = path.join(project.appSourcesDirectory, project.appStateFileName).toLowerCase().replace(/\\/g, '/');
+            let mainFiles = sourceFiles.filter(s => path.relative(s.path.toLowerCase(), fullPath) === '');
+            if (mainFiles.length === 0) {
+                logger.error(stateNotFoundError);
+                r(stateNotFoundError);
+                return;
             }
+            let sourceFile = mainFiles[0];
+            let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
+            let result = createText(data, project.appStateName);
+            let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
+            project.writeFileCallback(cursorsFile, new Buffer(result, 'utf-8'))
             f();
         })
     }
@@ -49,6 +53,7 @@ function createText(data: tsa.IStateSourceData, mainStateName: string): string {
     let nestedStates = data.states.filter(s => s.typeName !== mainStateName);
     let prefixMap: PrefixMap = {};
     const stateImportKey = 's';
+    let externalNexts: IExternalType[] = [];
     let content = `import * as ${stateImportKey} from './${data.fileName}';
 ${createImports(data.imports)}
 
@@ -60,6 +65,8 @@ export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobf
         let content = state.fields.map(f => {
             let key = `${prefix === null ? f.name : `${prefix}.${f.name}`}`;
             let fType = f.isArray ? `${f.type}[]` : f.type;
+            if (isExternalState(fType))
+                externalNexts.push({ state: f.type, relativeFilePath: fType, prefix: key });
             let states = data.states.filter(s => s.typeName === f.type);
             if (states.length > 0)
                 fType = `${stateImportKey}.${fType}`;
@@ -83,6 +90,12 @@ export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobf
 
 interface INextIteration {
     state: tsa.IStateData
+    prefix: string
+}
+
+interface IExternalType {
+    state: string
+    relativeFilePath: string
     prefix: string
 }
 
