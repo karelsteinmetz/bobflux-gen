@@ -30,7 +30,7 @@ describe('cursorsGenerator', () => {
                     expect(text).toContain(`import * as s from './stateTodos';
 import * as f from './flux';
 
-export let appCursor: f.ICursor<s.IApplicationState> = f.rootCursor
+export let rootCursor: f.ICursor<s.IApplicationState> = f.rootCursor
 
 export let todoSectionCursor: f.ICursor<s.ITodosState> = {
     key: 'todoSection'
@@ -81,7 +81,7 @@ export let todoSectionEditedTodoNameCursor: f.ICursor<string> = {
                     expect(text).toContain(`import * as s from './stateWithMap';
 import * as bf from 'bobflux';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
 export let stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
     key: 'stringCounts'
@@ -111,7 +111,7 @@ export let stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
                     expect(text).toContain(`import * as s from './stateWithArray';
 import * as bf from 'bobflux';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
 export let stringsCursor: bf.ICursor<string[]> = {
     key: 'strings'
@@ -145,6 +145,10 @@ export let numbersCursor: bf.ICursor<s.INumber[]> = {
                     .then(text => {
                         expect(text).toBe(`import * as s from './stateWithNestedState';
 import * as bf from 'bobflux';
+
+export let rootCursor: bf.ICursor<s.INestedState> = {
+    key: 'baseTypes'
+}
 
 export let numberValueCursor: bf.ICursor<number> = {
     key: 'baseTypes.numberValue'
@@ -203,7 +207,7 @@ export let numberValueCursor: bf.ICursor<number> = {
 import * as bf from 'bobflux';
 import * as ns from './stateWithNestedState';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
 export let stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
@@ -248,11 +252,11 @@ export let baseTypesCursor: bf.ICursor<ns.INestedState> = {
                 });
         });
 
-        it('generates main appCursor and typed it', (done) => {
+        it('generates main rootCursor and typed it', (done) => {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[3]).toBe(`export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+                    expect(text.split('\n')[3]).toBe(`export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
                     done();
                 });
         });
@@ -303,7 +307,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                     expect(text).toBe(`import * as s from './stateWithNestedState';
 import * as bf from 'bobflux';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
 export let stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
@@ -369,11 +373,11 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                 });
         });
 
-        it('generates main appCursor and typed it', (done) => {
+        it('generates main rootCursor and typed it', (done) => {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[3]).toBe(`export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+                    expect(text.split('\n')[3]).toBe(`export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
                     done();
                 });
         });
@@ -385,7 +389,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                     expect(text).toBe(`import * as s from './stateWithBaseTypes';
 import * as bf from 'bobflux';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export let rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
 
 export let stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'

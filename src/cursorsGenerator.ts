@@ -74,7 +74,13 @@ ${createImports(data.imports)}
 
 `;
     if (!parentStatePrefix)
-        content += `export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobfluxPrefix}.rootCursor
+        content += `export let rootCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobfluxPrefix}.rootCursor
+
+`;
+    if (parentStatePrefix)
+        content += `export let rootCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = {
+    key: '${parentStatePrefix}'
+}
 
 `;
     function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
