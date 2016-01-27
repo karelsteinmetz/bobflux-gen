@@ -58,10 +58,10 @@ export let todoSectionEditedTodoNameCursor: f.ICursor<string> = {
 `);
                     done();
                 })
-                .catch(e => { expect(e).toBeUndefined();  done();});
+                .catch(e => { expect(e).toBeUndefined(); done(); });
         });
     });
-    
+
     describe('file stateWithMap', () => {
         beforeEach(() => {
             testCase = {
@@ -127,7 +127,7 @@ export let numbersCursor: bf.ICursor<s.INumber[]> = {
     });
 
     describe('stateWithExternalState', () => {
-        xdescribe('file stateWithBaseTypes', () => {
+        describe('file stateWithBaseTypes', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
@@ -146,26 +146,8 @@ export let numbersCursor: bf.ICursor<s.INumber[]> = {
                         expect(text).toBe(`import * as s from './stateWithNestedState';
 import * as bf from 'bobflux';
 
-export let appCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
-
-export let stringValueCursor: bf.ICursor<string> = {
-    key: 'stringValue'
-}
-
-export let nestedCursor: bf.ICursor<s.INestedState> = {
-    key: 'nested'
-}
-
-export let secondNestedCursor: bf.ICursor<s.ISecondNestedState> = {
-    key: 'secondNested'
-}
-
-export let nestedNumberValueCursor: bf.ICursor<number> = {
-    key: 'nested.numberValue'
-}
-
-export let secondNestedStringValueCursor: bf.ICursor<string> = {
-    key: 'secondNested.stringValue'
+export let numberValueCursor: bf.ICursor<number> = {
+    key: 'baseTypes.numberValue'
 }
 `);
                         done();
@@ -192,7 +174,7 @@ export let secondNestedStringValueCursor: bf.ICursor<string> = {
                         expect(text.split('\n')[0]).toBe(`import * as s from './stateWithExternalState';`);
                         done();
                     })
-                    .catch(e => { console.log(e); expect(e).toBeUndefined(); done(); });
+                    .catch(e => { expect(e).toBeUndefined(); done(); });
             });
 
             it('imports bobflux as node module', (done) => {
@@ -418,6 +400,13 @@ export let numberValueCursor: bf.ICursor<number> = {
 
         });
     });
+
+    describe('createCursorFilePath', () => {
+        it('creates file path for cursors from state file path', () => {
+            expect(g.createCursorsFilePath('c:/app/state.ts'))
+                .toBe('c:/app/state.cursors.ts');
+        });
+    })
 
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void): gb.IGenerationProject {
         return {

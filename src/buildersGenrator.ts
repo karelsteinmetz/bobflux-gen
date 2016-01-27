@@ -92,5 +92,5 @@ ${createImports(data.imports, relativePath)}
 }
 
 function createImports(imports: tsa.IImportData[], relativePath: string): string {
-    return imports.map(i => `import ${i.prefix} from '${path.join(relativePath, i.filePath)}'; `).join('\n');
+    return imports.map(i => `import ${i.prefix} from '${path.join(relativePath, i.relativePath)}'; `).join('\n');
 }

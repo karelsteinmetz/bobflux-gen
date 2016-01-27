@@ -22,7 +22,8 @@ export interface IStateData {
 
 export interface IImportData {
     prefix: string
-    filePath: string
+    relativePath: string
+    fullPath: string
 }
 
 export interface IStateSourceData {
@@ -58,8 +59,10 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 if (n.kind === ts.SyntaxKind.StringLiteral) { //9
                     let sl = <ts.StringLiteral>n;
                     logger.debug('StringLiteral: ', sl);
-                    if (currentImport)
-                        currentImport.filePath = sl.text;
+                    if (currentImport) {
+                        currentImport.relativePath = sl.text;
+                        currentImport.fullPath = resolvePathStringLiteral(sl);
+                    }                        
                 }
                 if (n.kind === ts.SyntaxKind.Identifier) { //69
                     let iden = <ts.Identifier>n;
@@ -76,7 +79,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     logger.debug('ImportDeclaration: ', im);
                     if (currentImport)
                         result.imports.push(currentImport);
-                    currentImport = { prefix: null, filePath: null }
+                    currentImport = { prefix: null, relativePath: null, fullPath: null };
                 }
                 if (n.kind === ts.SyntaxKind.ImportClause) { //224
                     let ic = <ts.ImportClause>n;
@@ -85,7 +88,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 if (n.kind === ts.SyntaxKind.NamespaceImport) { //225
                     let ni = <ts.NamespaceImport>n;
                     logger.debug('NamespaceImport: ', ni);
-                    currentImport.prefix = ni.getText();
+                    currentImport.prefix = ni.name.getText();
                 }
                 if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
                     let ce = <ts.InterfaceDeclaration>n;

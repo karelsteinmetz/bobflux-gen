@@ -24,49 +24,68 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
             let sourceFiles = program.getSourceFiles();
             logger.info('Found source files: ', sourceFiles.map(s => s.path));
-            let fullPath = path.join(project.appSourcesDirectory, project.appStateFileName).toLowerCase().replace(/\\/g, '/');
-            let mainFiles = sourceFiles.filter(s => path.relative(s.path.toLowerCase(), fullPath) === '');
-            if (mainFiles.length === 0) {
+
+            let foundSource = findSourceFile(sourceFiles, path.join(project.appSourcesDirectory, project.appStateFileName));
+            if (!foundSource) {
                 logger.error(stateNotFoundError);
                 r(stateNotFoundError);
                 return;
             }
-            let sourceFile = mainFiles[0];
-            let data = tsAnalyzer.getSourceData(sourceFile, tc, resolvePathStringLiteral);
-            let result = createText(data, project.appStateName);
-            let cursorsFile = `${path.join(path.dirname(sourceFile.path), path.basename(sourceFile.fileName).replace(path.extname(sourceFile.fileName), ''))}.cursors.ts`;
-            project.writeFileCallback(cursorsFile, new Buffer(result, 'utf-8'))
+            let data = tsAnalyzer.getSourceData(foundSource, tc, resolvePathStringLiteral);
+            let writeCallback = (f, c) => { project.writeFileCallback(f, new Buffer(c, 'utf-8')); }
+            let filePath = path.join(path.dirname(foundSource.path), foundSource.fileName);
+            logger.info('Generating has been started for: ', filePath);
+            let childStates = writeCursors(filePath, data, project.appStateName, writeCallback);
+            logger.info('Generation ended');
+            childStates.forEach(es => {
+                let newESPath = path.join(path.dirname(es.parentFullPath), es.import.relativePath + '.ts');
+                logger.info('Generating has been started for: ', newESPath);
+                let esSourceFile = findSourceFile(sourceFiles, newESPath);
+                writeCursors(newESPath, tsAnalyzer.getSourceData(esSourceFile, tc, resolvePathStringLiteral), es.state, writeCallback, es.prefix)
+            });
             f();
         })
     }
 }
 
+function findSourceFile(sourceFiles: ts.SourceFile[], fullPath: string): ts.SourceFile {
+    let sanitizedFullPath = fullPath.toLowerCase().replace(/\\/g, '/');
+    let files = sourceFiles.filter(s => path.relative(s.path.toLowerCase(), sanitizedFullPath) === '');
+    if (files.length === 0)
+        return undefined;
+    return files[0];
+}
+
 type PrefixMap = { [stateName: string]: string };
 
-function createText(data: tsa.IStateSourceData, mainStateName: string): string {
-    let mainStates = data.states.filter(s => s.typeName === mainStateName);
-    if (mainStates.length === 0)
-        return null;
-    let mainState = mainStates[0];
+function writeCursors(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, writeCallback: (filePath: string, content: string) => void, parentStatePrefix: string = null): IExternalChildState[] {
+    let foundStates = data.states.filter(s => { return s.typeName === currentStateName });
+    if (foundStates.length === 0)
+        return [];
+    let mainState = foundStates[0];
     let foundStateHeritages = mainState.heritages.filter(h => h.indexOf('.IState') !== -1)
     let bobfluxPrefix = (foundStateHeritages.length === 0) ? 'bf' : foundStateHeritages[0].split('.')[0];
-    let nestedStates = data.states.filter(s => s.typeName !== mainStateName);
+    let nestedStates = data.states.filter(s => s.typeName !== currentStateName);
     let prefixMap: PrefixMap = {};
     const stateImportKey = 's';
-    let externalNexts: IExternalType[] = [];
+    let externalChildStates: IExternalChildState[] = [];
     let content = `import * as ${stateImportKey} from './${data.fileName}';
 ${createImports(data.imports)}
 
-export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobfluxPrefix}.rootCursor
+`;
+    if (!parentStatePrefix)
+        content += `export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobfluxPrefix}.rootCursor
 
 `;
     function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
         let nexts: INextIteration[] = [];
         let content = state.fields.map(f => {
-            let key = `${prefix === null ? f.name : `${prefix}.${f.name}`}`;
+            let key = createCursorKey(parentStatePrefix, prefix, f.name);
             let fType = f.isArray ? `${f.type}[]` : f.type;
-            if (isExternalState(fType))
-                externalNexts.push({ state: f.type, relativeFilePath: fType, prefix: key });
+            if (isExternalState(fType)) {
+                let splitedImport = fType.split('.');
+                externalChildStates.push({ state: splitedImport[1], import: data.imports.filter(i => i.prefix === splitedImport[0])[0], prefix: key, parentFullPath: stateFilePath });
+            }
             let states = data.states.filter(s => s.typeName === f.type);
             if (states.length > 0)
                 fType = `${stateImportKey}.${fType}`;
@@ -84,8 +103,17 @@ export let appCursor: ${bobfluxPrefix}.ICursor<s.${mainState.typeName}> = ${bobf
         }).join('\n');
         return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateParams(n.state, bobfluxPrefix, n.prefix)).join('\n');
     }
-    content += createCursorsForStateParams(mainState, bobfluxPrefix)
-    return content;
+    content += createCursorsForStateParams(mainState, bobfluxPrefix);
+    writeCallback(createCursorsFilePath(stateFilePath), content);
+    return externalChildStates;
+}
+
+export function createCursorKey(...parts: string[]): string {
+    return parts.filter(p => p !== null).join('.');
+}
+
+export function createCursorsFilePath(stateFilePath: string): string {
+    return `${path.join(path.dirname(stateFilePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.cursors.ts`;
 }
 
 interface INextIteration {
@@ -93,10 +121,11 @@ interface INextIteration {
     prefix: string
 }
 
-interface IExternalType {
+interface IExternalChildState {
     state: string
-    relativeFilePath: string
+    import: tsa.IImportData
     prefix: string
+    parentFullPath: string
 }
 
 function isExternalState(type: string): boolean {
@@ -104,6 +133,6 @@ function isExternalState(type: string): boolean {
 }
 
 function createImports(imports: tsa.IImportData[]): string {
-    return imports.map(i => `import ${i.prefix} from '${i.filePath}';`).join(`
+    return imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join(`
 `);
 }
