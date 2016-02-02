@@ -1,6 +1,6 @@
 {
   "name": "bobflux-gen",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Generator for monkey files in bobflux application.",
   "main": "index.js",
   "repository": {
@@ -14,7 +14,7 @@
     "bfg": "./bin/bfg"
   },
   "dependencies": {
-    "bobflux": "*",  
+    "bobflux": "*",
     "commander": "^2.9.0",
     "typescript": "1.8.0-dev.20151122"
   },

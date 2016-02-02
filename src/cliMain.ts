@@ -18,9 +18,13 @@ export function run() {
         .description("generates cursors for each state")
         .option("-p, --appStatePath <appStatePath>", "define pattren for state files search (default is ./state.ts)")
         .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
+        .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
+            let applyRecurse = false
+            if (humanTrue(c["recursively"]))
+                applyRecurse = true;
             logger.info('Cursors generator started');
-            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger)
+            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, applyRecurse)
                 .run()
                 .then(r => logger.info('Cursors generator finished'))
         });
@@ -28,9 +32,9 @@ export function run() {
         .command("builders")
         .alias("b")
         .description("generates builders for each state")
-        .option("-p, --appStatePath <appStatePath>", "define pattren for state files search (default is ./state.ts)")
-        .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
-        .option("-s, --specRelativePath <specRelativePath>", "define spec directory relative path from appStatePath (default is next to states)")
+        .option("-p, --appStatePath <appStatePath>", "defines pattren for state files search (default is ./state.ts)")
+        .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
+        .option("-s, --specRelativePath <specRelativePath>", "defines spec directory relative path from appStatePath (default is next to states)")
         .action((o) => {
             logger.info('Builders generator started');
             bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
@@ -81,3 +85,8 @@ export function mkpathsync(dirpath: string) {
         }
     }
 };
+
+
+function humanTrue(val: string): boolean {
+    return /^(true|1|t|y)$/i.test(val);
+}

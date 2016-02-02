@@ -134,7 +134,7 @@ export let numbersCursor: bf.ICursor<s.INumber[]> = {
                         g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
                             if (filename.indexOf('stateWithNestedState') !== -1)
                                 f(b.toString('utf8'));
-                        }), tsa.create(logger), logger).run();
+                        }), tsa.create(logger), logger, true).run();
                     })
                 };
             });
