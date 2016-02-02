@@ -15,7 +15,7 @@ const mainStateIndex = 0;
 const stateNotFoundError = 'Main state file could not be found.';
 const stateImportKey = 's';
 
-export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, applyRecurse: boolean = false): g.IGenerationProcess => {
+export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, applyRecurse: boolean = false, rootStateKey: string = null): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
             logger.info('Cursors generator runs in: ' + project.appSourcesDirectory);
@@ -38,12 +38,12 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             let filePath = path.join(path.dirname(foundSource.path), foundSource.fileName);
 
             try {
-                writeCursors(filePath, data, project.appStateName, writeCallback);
+                writeCursors(filePath, data, project.appStateName, writeCallback, rootStateKey);
             } catch (e) {
                 logger.error('Error on cursors writing.', e);
             }
 
-            function writeCursors(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, writeCallback: (filePath: string, content: string) => void, parentStatePrefix: string = null) {
+            function writeCursors(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string = null) {
                 let mainState = resolveState(data.states, currentStateName);
                 if (!mainState)
                     return [];
@@ -51,7 +51,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                 function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
                     let nexts: INextIteration[] = [];
                     let inner = state.fields.map(f => {
-                        let key = createCursorKey(parentStatePrefix, prefix, f.name);
+                        let key = createCursorKey(parentStateKey, prefix, f.name);
                         let fieldType = f.isArray ? `${f.type}[]` : f.type;
                         if (applyRecurse && isExternalState(fieldType)) {
                             let typeParts = fieldType.split('.');
@@ -77,7 +77,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                 writeCallback(
                     createCursorsFilePath(stateFilePath),
                     createFullImports(data.fileName, data.imports)
-                    + createRootCursor(parentStatePrefix, bobfluxPrefix, mainState.typeName)
+                    + createRootCursor(parentStateKey, bobfluxPrefix, mainState.typeName)
                     + fieldsContent
                 );
                 logger.info('Generation ended');

@@ -16,8 +16,9 @@ export function run() {
         .command("cursors")
         .alias("c")
         .description("generates cursors for each state")
-        .option("-p, --appStatePath <appStatePath>", "define pattren for state files search (default is ./state.ts)")
-        .option("-n, --appStateName <appStateName>", "define root name of Application state (default is IApplicationState)")
+        .option("-p, --appStatePath <appStatePath>", "defines pattren for state files search (default is ./state.ts)")
+        .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
+        .option("-k, --parentStateKey <parentStateKey>", "defines key of parent state, it's suitable for nested states (default is empty)")
         .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
             let applyRecurse = false
@@ -25,8 +26,10 @@ export function run() {
                 applyRecurse = true;
                 logger.info('Recurse generation has been set');
             }
+            if (o.parentStateKey)
+                logger.info(`Parent state cursor key '${o.parentStateKey}' has been set`);
             logger.info('Cursors generator started');
-            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, applyRecurse)
+            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, applyRecurse, o.parentStateKey)
                 .run()
                 .then(r => logger.info('Cursors generator finished'))
         });

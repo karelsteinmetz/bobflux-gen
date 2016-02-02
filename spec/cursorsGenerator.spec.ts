@@ -405,6 +405,38 @@ export let numberValueCursor: bf.ICursor<number> = {
         });
     });
 
+    it('generates state with parent cursor key', (done) => {
+        testCase = {
+            do: () => new Promise<string>((f, r) => {
+                g.default(aProject('IApplicationState', './stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
+                    if (filename.indexOf('stateWithBaseTypes') !== -1)
+                        f(b.toString('utf8'));
+                }), tsa.create(logger), logger, false, 'parentCursorKey').run();
+            })
+        };
+        testCase
+            .do()
+            .then(text => {
+                expect(text).toBe(`import * as s from './stateWithBaseTypes';
+import * as bf from 'bobflux';
+
+export let rootCursor: bf.ICursor<s.IApplicationState> = {
+    key: 'parentCursorKey'
+}
+
+export let stringValueCursor: bf.ICursor<string> = {
+    key: 'parentCursorKey.stringValue'
+}
+
+export let numberValueCursor: bf.ICursor<number> = {
+    key: 'parentCursorKey.numberValue'
+}
+`);
+                done();
+            });
+
+    });
+
     describe('createCursorFilePath', () => {
         it('creates file path for cursors from state file path', () => {
             expect(g.createCursorsFilePath('c:/app/state.ts'))
