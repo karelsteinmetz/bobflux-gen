@@ -21,8 +21,10 @@ export function run() {
         .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
             let applyRecurse = false
-            if (humanTrue(c["recursively"]))
+            if (humanTrue(o.recursively)) {
                 applyRecurse = true;
+                logger.info('Recurse generation has been set');
+            }
             logger.info('Cursors generator started');
             cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, applyRecurse)
                 .run()
