@@ -89,7 +89,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 
 
 function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string): string {
-    return `export let ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}Cursor: ${bobfluxPrefix}.ICursor<${typeName}> = {
+    return `export const ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}Cursor: ${bobfluxPrefix}.ICursor<${typeName}> = {
     key: '${key}'
 }
 `;
@@ -97,12 +97,12 @@ function createFieldCursor(prefix: string, key: string, fieldName: string, bobfl
 
 function createRootCursor(prefix: string, bobfluxPrefix: string, typeName: string): string {
     return prefix
-        ? `export let rootCursor: ${bobfluxPrefix}.ICursor<s.${typeName}> = {
+        ? `export const rootCursor: ${bobfluxPrefix}.ICursor<s.${typeName}> = {
     key: '${prefix}'
 }
 
 `
-        : `export let rootCursor: ${bobfluxPrefix}.ICursor<s.${typeName}> = ${bobfluxPrefix}.rootCursor
+        : `export const rootCursor: ${bobfluxPrefix}.ICursor<s.${typeName}> = ${bobfluxPrefix}.rootCursor
 
 `;
 }
