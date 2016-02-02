@@ -34,7 +34,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                 return;
             }
             let data = tsAnalyzer.getSourceData(foundSource, tc, resolvePathStringLiteral);
-            let writeCallback = (f, c) => { project.writeFileCallback(f, new Buffer(c, 'utf-8')); }
+            const writeCallback = (f, c) => { project.writeFileCallback(f, new Buffer(c, 'utf-8')); }
             let filePath = path.join(path.dirname(foundSource.path), foundSource.fileName);
 
             try {
@@ -48,8 +48,6 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                 if (!mainState)
                     return [];
                 const bobfluxPrefix = resolveBobfluxPrefix(mainState);
-                let content = createFullImports(data.fileName, data.imports);
-                content += createRootCursor(parentStatePrefix, bobfluxPrefix, mainState.typeName);
                 function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
                     let nexts: INextIteration[] = [];
                     let inner = state.fields.map(f => {
@@ -74,9 +72,14 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                     }).join('\n');
                     return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateParams(n.state, bobfluxPrefix, n.prefix)).join('\n');
                 }
-                content += createCursorsForStateParams(mainState, bobfluxPrefix);
+                let fieldsContent = createCursorsForStateParams(mainState, bobfluxPrefix);
                 logger.info('Generating has been started for: ', filePath);
-                writeCallback(createCursorsFilePath(stateFilePath), content);
+                writeCallback(
+                    createCursorsFilePath(stateFilePath),
+                    createFullImports(data.fileName, data.imports)
+                    + createRootCursor(parentStatePrefix, bobfluxPrefix, mainState.typeName)
+                    + fieldsContent
+                );
                 logger.info('Generation ended');
             }
             f();
