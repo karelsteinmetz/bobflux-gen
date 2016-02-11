@@ -11,14 +11,10 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, '/')), "lib.es6.d.ts");
 
-const mainStateIndex = 0;
-const stateNotFoundError = 'Main state file could not be found.';
-const stateImportKey = 's';
-
 export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, applyRecurse: boolean = false, rootStateKey: string = null): g.IGenerationProcess => {
     return {
         run: () => new Promise((f, r) => {
-            logger.info('Cursors generator runs in: ' + project.appSourcesDirectory);
+            logger.info('Generator runs in: ' + project.appSourcesDirectory);
             logger.info('Application state file is: ' + project.appStateFileName);
             logger.info('Application state name is: ' + project.appStateName);
             let program = ts.createProgram([project.appStateFileName], project.tsOptions, tsch.createCompilerHost(project.appSourcesDirectory));
@@ -27,10 +23,10 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             let sourceFiles = program.getSourceFiles();
             logger.info('Found source files: ', sourceFiles.map(s => s.path));
 
-            let foundSource = resolveSourceFile(sourceFiles, path.join(project.appSourcesDirectory, project.appStateFileName));
+            let foundSource = g.resolveSourceFile(sourceFiles, path.join(project.appSourcesDirectory, project.appStateFileName));
             if (!foundSource) {
-                logger.error(stateNotFoundError);
-                r(stateNotFoundError);
+                logger.error(g.stateNotFoundError);
+                r(g.stateNotFoundError);
                 return;
             }
             let data = tsAnalyzer.getSourceData(foundSource, tc, resolvePathStringLiteral);
@@ -44,10 +40,10 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             }
 
             function writeCursors(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string = null) {
-                let mainState = resolveState(data.states, currentStateName);
+                let mainState = g.resolveState(data.states, currentStateName);
                 if (!mainState)
                     return [];
-                const bobfluxPrefix = resolveBobfluxPrefix(mainState);
+                const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
                 function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
                     let nexts: INextIteration[] = [];
                     let inner = state.fields.map(f => {
@@ -56,13 +52,13 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                         if (applyRecurse && isExternalState(fieldType)) {
                             let typeParts = fieldType.split('.');
                             let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
-                            let innerSourceFile = resolveSourceFile(sourceFiles, innerFilePath);
+                            let innerSourceFile = g.resolveSourceFile(sourceFiles, innerFilePath);
                             if (innerSourceFile)
                                 writeCursors(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, tc, resolvePathStringLiteral), typeParts[1], writeCallback, key);
                         }
                         let states = data.states.filter(s => s.typeName === f.type);
                         if (states.length > 0)
-                            fieldType = `${stateImportKey}.${fieldType}`;
+                            fieldType = `${g.stateImportKey}.${fieldType}`;
                         if (f.isArray)
                             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType);
                         if (states.length > 0)
@@ -118,24 +114,6 @@ ${createImports(imports)}
 function createImports(imports: tsa.IImportData[]): string {
     return imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join(`
 `);
-}
-
-function resolveBobfluxPrefix(mainState: tsa.IStateData): string {
-    let founds = mainState.heritages.filter(h => h.indexOf('.IState') !== -1)
-    return (founds.length === 0) ? 'bf' : founds[0].split('.')[0];
-}
-
-function resolveState(allStates: tsa.IStateData[], stateName: string): tsa.IStateData {
-    const states = allStates.filter(s => { return s.typeName === stateName });
-    return states.length === 0 ? null : states[0];
-}
-
-function resolveSourceFile(sourceFiles: ts.SourceFile[], fullPath: string): ts.SourceFile {
-    let lowFullPath = fullPath.toLowerCase().replace(/\\/g, '/');
-    let files = sourceFiles.filter(s => path.relative(s.path.toLowerCase(), lowFullPath) === '');
-    if (files.length === 0)
-        return null;
-    return files[0];
 }
 
 export function createCursorKey(...parts: string[]): string {
