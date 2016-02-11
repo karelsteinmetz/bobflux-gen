@@ -57,7 +57,8 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                             let typeParts = fieldType.split('.');
                             let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                             let innerSourceFile = resolveSourceFile(sourceFiles, innerFilePath);
-                            writeCursors(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, tc, resolvePathStringLiteral), typeParts[1], writeCallback, key);
+                            if (innerSourceFile)
+                                writeCursors(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, tc, resolvePathStringLiteral), typeParts[1], writeCallback, key);
                         }
                         let states = data.states.filter(s => s.typeName === f.type);
                         if (states.length > 0)
