@@ -17,7 +17,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
             logger.info('Generator runs in: ' + project.appSourcesDirectory);
             logger.info('Application state file is: ' + project.appStateFileName);
             logger.info('Application state name is: ' + project.appStateName);
-            let program = ts.createProgram([project.appStateFileName], project.tsOptions, tsch.createCompilerHost(project.appSourcesDirectory));
+            let program = ts.createProgram([project.appStateFileName], project.tsOptions, tsch.createCompilerHost(project.appSourcesDirectory, logger));
             let tc = program.getTypeChecker();
             const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
             let sourceFiles = program.getSourceFiles();

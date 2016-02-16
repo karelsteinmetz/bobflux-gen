@@ -1,4 +1,6 @@
 import * as g from './generator';
+import * as log from  './logger';
+import * as pu from './pathUtils';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as pathPlatformDependent from 'path';
@@ -7,7 +9,7 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
 
-export function createCompilerHost(currentDirectory): ts.CompilerHost {
+export function createCompilerHost(currentDirectory: string, logger: log.ILogger): ts.CompilerHost {
     function getCanonicalFileName(fileName) {
         return ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase();
     }
@@ -19,6 +21,7 @@ export function createCompilerHost(currentDirectory): ts.CompilerHost {
             let filePath = filename === defaultLibFilename ? defaultLibFilename : path.join(currentDirectory, filename);
             var text = fs.readFileSync(filePath).toString();
         } catch (e) {
+            logger.error(`Error during source file reading: ${filename}`, e);
             return null;
         }
         return ts.createSourceFile(filename, text, languageVersion, true);
@@ -44,7 +47,8 @@ export function createCompilerHost(currentDirectory): ts.CompilerHost {
     function resolveModuleName(moduleName: string, containingFile: string): ts.ResolvedModule {
         if (moduleName.substr(0, 1) === '.') {
             let res = moduleName + ".ts";
-            return { resolvedFileName: res };
+            let resRelative = pu.normalizePath(currentDirectory, containingFile, res);
+            return { resolvedFileName: resRelative };
         }
         return null;
     }

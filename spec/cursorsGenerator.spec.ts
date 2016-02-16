@@ -127,7 +127,7 @@ export const numbersCursor: bf.ICursor<s.INumber[]> = {
     });
 
     describe('stateWithExternalState', () => {
-        describe('file stateWithBaseTypes', () => {
+        describe('file stateWithNestedState', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
