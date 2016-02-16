@@ -5,6 +5,8 @@ import * as pathPlatformDependent from 'path';
 
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
+export const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
+
 export interface IStateFieldData {
     name: string
     type: string
