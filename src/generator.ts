@@ -46,8 +46,6 @@ export function resolveSourceFile(sourceFiles: ts.SourceFile[], fullPath: string
 export interface ILoadedParams {
     stateFilePath: string
     data: tsa.IStateSourceData
-    currentStateName: string
-    parentStateKey: string
     sourceFiles: ts.SourceFile[]
     typeChecker: ts.TypeChecker
 }
@@ -74,8 +72,6 @@ export function loadSourceFiles(project: IGenerationProject, tsAnalyzer: tsa.ITs
         f({
             stateFilePath: filePath,
             data: data,
-            currentStateName: project.appStateName,
-            parentStateKey: rootStateKey,
             sourceFiles: sourceFiles,
             typeChecker: tc
         });
