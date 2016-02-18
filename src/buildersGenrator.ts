@@ -36,13 +36,14 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                         logger.error('Error on cursors writing.', e);
                     }
 
-                    function writeBuilders(stateFilePath: string, data: tsa.IStateSourceData, mainStateName: string, relativePath: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string = null) {
+                    function writeBuilders(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, relativePath: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string = null) {
+                        let mainState = g.resolveState(data.states, currentStateName);
+                        if (!mainState)
+                            return [];
                         const stateImportKey = 's';
-                        let content = `import * as ${stateImportKey} from '${relativePath == '' ? './' + data.fileName : path.join(relativePath, data.fileName)}';
-${createImports(data.imports, relativePath)}
-
-`
-                            + data.states.map(state => {
+                        function createForStateParams(state: tsa.IStateData, prefix: string = null): string {
+                            let nexts: INextIteration[] = [];
+                            let inner = data.states.map(state => {
                                 let nexts: INextIteration[] = [];
                                 let name = `${nameUnifier.removeIfacePrefix(state.typeName)}Builder`;
                                 let stateName = `${stateImportKey}.${state.typeName}`;
@@ -51,6 +52,15 @@ ${createImports(data.imports, relativePath)}
 
 `
                                 content += state.fields.map(f => {
+                                    let key = g.createCursorKey(parentStateKey, prefix, f.name);
+                                    let fieldType = f.isArray ? `${f.type}[]` : f.type;
+                                    if (applyRecurse && g.isExternalState(fieldType)) {
+                                        let typeParts = fieldType.split('.');
+                                        let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
+                                        let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
+                                        if (innerSourceFile)
+                                            writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker, tsa.resolvePathStringLiteral), typeParts[1], '', writeCallback, key);
+                                    }
                                     let fType = f.isArray ? `${f.type}[]` : f.type;
                                     let states = data.states.filter(s => s.typeName === f.type);
                                     if (states.length > 0)
@@ -60,12 +70,16 @@ ${createImports(data.imports, relativePath)}
         return this;
     };
 `
+                                    if (states.length > 0)
+                                        nexts.push({ state: states[0], prefix: key });
+                                    if (states.length > 1)
+                                        throw 'Two states with same name could not be parsed. It\'s compilation error.';
                                     return ct;
                                 }).join('\n');
                                 content += `
     public build(): ${stateName} {
 `;
-                                if (mainStateName === state.typeName)
+                                if (currentStateName === state.typeName)
                                     content +=
                                         `        s.bootstrap(this.state);
 `
@@ -75,10 +89,17 @@ ${createImports(data.imports, relativePath)}
 }
 `
                                 return content;
-                            }).join('\n')
+                            }).join('\n');
+                            return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createForStateParams(n.state, n.prefix)).join('\n');
+                        }
 
-                        logger.info('Generating has been started for: ', p.stateFilePath);
-                        writeCallback(createBuildersFilePath(stateFilePath), content);
+                        let fieldsContent = createForStateParams(mainState);
+                        logger.info('Generating has been started for: ', stateFilePath);
+                        writeCallback(
+                            createBuildersFilePath(stateFilePath),
+                            g.createFullImports(relativePath == '' ? './' + data.fileName : path.join(relativePath, data.fileName), data.imports)
+                            + fieldsContent
+                        );
                         logger.info('Generation ended');
                     }
                     f();
@@ -96,8 +117,4 @@ interface INextIteration {
 
 function createBuildersFilePath(stateFilePath: string): string {
     return `${path.join(path.dirname(stateFilePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.builders.ts`;
-}
-
-function createImports(imports: tsa.IImportData[], relativePath: string): string {
-    return imports.map(i => `import ${i.prefix} from '${path.join(relativePath, i.relativePath)}'; `).join('\n');
 }

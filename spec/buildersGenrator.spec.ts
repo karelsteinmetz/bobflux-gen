@@ -11,6 +11,80 @@ describe('buildersGenrator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('stateWithExternalState', () => {
+        describe('file stateWithExternalState', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithExternalState') !== -1)
+                                f(b.toString('utf8'));
+                        }), tsa.create(logger), logger).run();
+                    })
+                };
+            })
+
+            it('imports state file', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as s from './stateWithExternalState';`);
+                        done();
+                    });
+            });
+
+            it('imports external state file', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as ns from './stateWithNestedState';`);
+                        done();
+                    });
+            });
+
+            it('generates builder fields', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
+    public withStringValue(stringValue: string): ApplicationStateBuilder {
+        this.state.stringValue = stringValue;
+        return this;
+    };
+
+    public withBaseTypes(baseTypes: ns.INestedState): ApplicationStateBuilder {
+        this.state.baseTypes = baseTypes;
+        return this;
+    };
+`);
+                        done();
+                    });
+            });
+        })
+
+        describe('file stateWithNestedState', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithNestedState') !== -1)
+                                f(b.toString('utf8'));
+                        }), tsa.create(logger), logger, true).run();
+                    })
+                };
+            })
+
+            it('imports state file', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as s from './stateWithNestedState';`);
+                        done();
+                    });
+            });
+        })
+    })
+
     describe('file stateTodos', () => {
         beforeEach(() => {
             testCase = {
@@ -22,7 +96,7 @@ describe('buildersGenrator', () => {
                 })
             };
         });
-                
+
         it('imports state file', (done) => {
             testCase
                 .do()
@@ -31,7 +105,7 @@ describe('buildersGenrator', () => {
                     done();
                 });
         });
-        
+
         it('generates builder fields', (done) => {
             testCase
                 .do()
@@ -45,7 +119,7 @@ describe('buildersGenrator', () => {
                     done();
                 });
         });
-        
+
         it('generates build function for application state', (done) => {
             testCase
                 .do()
@@ -58,7 +132,7 @@ describe('buildersGenrator', () => {
                     done();
                 });
         });
-        
+
         it('generates build function for nested states', (done) => {
             testCase
                 .do()
@@ -70,7 +144,7 @@ describe('buildersGenrator', () => {
                     done();
                 });
         });
-        
+
         it('generates builder for todos section', (done) => {
             testCase
                 .do()
@@ -94,7 +168,7 @@ export class ApplicationStateBuilder {
                 });
         });
     });
-    
+
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void): gb.IGenerationProject {
         return {
             dir: __dirname,

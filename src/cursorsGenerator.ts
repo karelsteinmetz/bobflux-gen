@@ -30,9 +30,9 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                         function createCursorsForStateParams(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
                             let nexts: INextIteration[] = [];
                             let inner = state.fields.map(f => {
-                                let key = createCursorKey(parentStateKey, prefix, f.name);
+                                let key = g.createCursorKey(parentStateKey, prefix, f.name);
                                 let fieldType = f.isArray ? `${f.type}[]` : f.type;
-                                if (applyRecurse && isExternalState(fieldType)) {
+                                if (applyRecurse && g.isExternalState(fieldType)) {
                                     let typeParts = fieldType.split('.');
                                     let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                                     let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
@@ -56,7 +56,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
                         logger.info('Generating has been started for: ', stateFilePath);
                         writeCallback(
                             createCursorsFilePath(stateFilePath),
-                            createFullImports(data.fileName, data.imports)
+                            g.createFullImports(`./${data.fileName}`, data.imports)
                             + createRootCursor(parentStateKey, bobfluxPrefix, mainState.typeName)
                             + fieldsContent
                         );
@@ -89,22 +89,6 @@ function createRootCursor(prefix: string, bobfluxPrefix: string, typeName: strin
 `;
 }
 
-function createFullImports(stateFileName: string, imports: tsa.IImportData[]): string {
-    return `import * as s from './${stateFileName}';
-${createImports(imports)}
-
-`;
-}
-
-function createImports(imports: tsa.IImportData[]): string {
-    return imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join(`
-`);
-}
-
-export function createCursorKey(...parts: string[]): string {
-    return parts.filter(p => p !== null).join('.');
-}
-
 export function createCursorsFilePath(stateFilePath: string): string {
     return `${path.join(path.dirname(stateFilePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.cursors.ts`;
 }
@@ -119,8 +103,4 @@ interface IExternalChildState {
     import: tsa.IImportData
     prefix: string
     parentFullPath: string
-}
-
-function isExternalState(type: string): boolean {
-    return type.split('.').length > 1;
 }

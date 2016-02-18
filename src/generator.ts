@@ -42,7 +42,6 @@ export function resolveSourceFile(sourceFiles: ts.SourceFile[], fullPath: string
     return files[0];
 }
 
-
 export interface ILoadedParams {
     stateFilePath: string
     data: tsa.IStateSourceData
@@ -76,4 +75,24 @@ export function loadSourceFiles(project: IGenerationProject, tsAnalyzer: tsa.ITs
             typeChecker: tc
         });
     });
+}
+
+export function isExternalState(type: string): boolean {
+    return type.split('.').length > 1;
+}
+
+export function createCursorKey(...parts: string[]): string {
+    return parts.filter(p => p !== null).join('.');
+}
+
+export function createFullImports(stateFilePath: string, imports: tsa.IImportData[]): string {
+    return `import * as s from '${stateFilePath}';
+${createImports(imports)}
+
+`;
+}
+
+export function createImports(imports: tsa.IImportData[]): string {
+    return imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join(`
+`);
 }
