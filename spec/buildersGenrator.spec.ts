@@ -11,6 +11,53 @@ describe('buildersGenrator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('relative path', () => {
+        describe('file stateWithExternalState', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithExternalState') !== -1)
+                                f(b.toString('utf8'));
+                        }, '../../tests'), tsa.create(logger), logger).runRecurse();
+                    })
+                };
+            })
+
+            it('imports state file', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as s from '../spec/resources/stateWithExternalState';`);
+                        done();
+                    });
+            });
+        })
+
+        describe('file stateWithNestedState', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithNestedState') !== -1)
+                                f(b.toString('utf8'));
+                        }, '../../tests'), tsa.create(logger), logger).runRecurse();
+                    })
+                };
+            })
+
+            it('imports state file', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as s from '../spec/resources/stateWithNestedState';`);
+                        done();
+                    });
+            });
+        })
+    })
+
+
     describe('stateWithExternalState', () => {
         describe('file stateWithExternalState', () => {
             beforeEach(() => {
@@ -69,7 +116,7 @@ describe('buildersGenrator', () => {
                         bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
                             if (filename.indexOf('stateWithNestedState') !== -1)
                                 f(b.toString('utf8'));
-                        }), tsa.create(logger), logger, true).run();
+                        }), tsa.create(logger), logger).runRecurse();
                     })
                 };
             })
@@ -169,14 +216,15 @@ export class ApplicationStateBuilder {
         });
     });
 
-    function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void): gb.IGenerationProject {
+    function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void, relativePath: string = null): gb.IGenerationProject {
         return {
             dir: __dirname,
             appStateName: appStateName,
             appSourcesDirectory: path.join(__dirname, 'resources'),
             appStateFileName: path.basename(appFilePath),
             tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
-            writeFileCallback: writeFileCallback
+            writeFileCallback: writeFileCallback,
+            relativePath: relativePath
         }
     }
 });

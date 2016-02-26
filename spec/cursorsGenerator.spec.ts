@@ -134,7 +134,7 @@ export const numbersCursor: bf.ICursor<s.INumber[]> = {
                         g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
                             if (filename.indexOf('stateWithNestedState') !== -1)
                                 f(b.toString('utf8'));
-                        }), tsa.create(logger), logger, true).run();
+                        }), tsa.create(logger), logger).runRecurse();
                     })
                 };
             });
@@ -411,7 +411,7 @@ export const numberValueCursor: bf.ICursor<number> = {
                 g.default(aProject('IApplicationState', './stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
                     if (filename.indexOf('stateWithBaseTypes') !== -1)
                         f(b.toString('utf8'));
-                }), tsa.create(logger), logger, false, 'parentCursorKey').run();
+                }), tsa.create(logger), logger, 'parentCursorKey').run();
             })
         };
         testCase

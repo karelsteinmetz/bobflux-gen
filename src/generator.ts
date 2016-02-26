@@ -18,6 +18,7 @@ export interface IGenerationProject {
 
 export interface IGenerationProcess {
     run(): Promise<any>;
+    runRecurse(): Promise<any>;
 }
 
 export const mainStateIndex = 0;

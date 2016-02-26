@@ -21,17 +21,19 @@ export function run() {
         .option("-k, --parentStateKey <parentStateKey>", "defines key of parent state, it's suitable for nested states (default is empty)")
         .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
-            let applyRecurse = false
-            if (humanTrue(o.recursively)) {
-                applyRecurse = true;
-                logger.info('Recurse generation has been set');
-            }
             if (o.parentStateKey)
                 logger.info(`Parent state cursor key '${o.parentStateKey}' has been set`);
             logger.info('Cursors generator started');
-            cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, applyRecurse, o.parentStateKey)
-                .run()
-                .then(r => logger.info('Cursors generator finished'))
+            if (humanTrue(o.recursively)) {
+                logger.info('Recurse generation has been set');
+                cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
+                    .runRecurse()
+                    .then(r => logger.info('Cursors generator finished'))
+            }
+            else
+                cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
+                    .run()
+                    .then(r => logger.info('Cursors generator finished'));
         });
     c
         .command("builders")
@@ -40,11 +42,18 @@ export function run() {
         .option("-p, --appStatePath <appStatePath>", "defines pattren for state files search (default is ./state.ts)")
         .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
         .option("-s, --specRelativePath <specRelativePath>", "defines spec directory relative path from appStatePath (default is next to states)")
+        .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
             logger.info('Builders generator started');
+            if (humanTrue(o.recursively)) {
+                logger.info('Recurse generation has been set');
+                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
+                    .runRecurse()
+                    .then(r => logger.info('Builders generator finished'))
+            }
             bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
                 .run()
-                .then(r => logger.info('Builders generator finished'))
+                .then(r => logger.info('Builders generator finished'));
         });
     c.command('*', null, { noHelp: true }).action((com) => {
         logger.info('Invalid command: ' + com);
