@@ -24,7 +24,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, rootStateKey: string): Promise<any> {
     return new Promise((f, r) => {
         const writeCallback = (fn, c) =>  project.writeFileCallback(fn, new Buffer(c, 'utf-8'));
-        g.loadSourceFiles(project, tsAnalyzer, logger, rootStateKey)
+        g.loadSourceFiles(project, tsAnalyzer, logger)
             .then(p => {
                 try {
                     let filePath = path.join(path.dirname(p.stateFilePath), path.basename(p.stateFilePath));

@@ -50,7 +50,7 @@ export interface ILoadedParams {
     typeChecker: ts.TypeChecker
 }
 
-export function loadSourceFiles(project: IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, rootStateKey: string): Promise<ILoadedParams> {
+export function loadSourceFiles(project: IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger): Promise<ILoadedParams> {
     return new Promise<ILoadedParams>((f, r) => {
         logger.info('Generator runs in: ' + project.appSourcesDirectory);
         logger.info('Application state file is: ' + project.appStateFileName);
