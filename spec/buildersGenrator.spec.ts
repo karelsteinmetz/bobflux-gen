@@ -12,14 +12,14 @@ describe('buildersGenrator', () => {
     let logger = log.create(false, false, false, false);
 
     describe('relative path', () => {
-        describe('file stateWithExternalState', () => {
+        describe('file stateWithInner', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
-                        bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithExternalState') !== -1)
+                        bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithInner') !== -1)
                                 f(b.toString('utf8'));
-                        }, '../../tests'), tsa.create(logger), logger).runRecurse();
+                        }, '../../tests/'), tsa.create(logger), logger).runRecurse();
                     })
                 };
             })
@@ -28,18 +28,18 @@ describe('buildersGenrator', () => {
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as s from '../spec/resources/stateWithExternalState';`);
+                        expect(text).toContain(`import * as s from '../spec/resources/stateWithInner';`);
                         done();
                     });
             });
         })
 
-        describe('file stateWithNestedState', () => {
+        describe('file stateInner', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
-                        bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithNestedState') !== -1)
+                        bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateInner') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests'), tsa.create(logger), logger).runRecurse();
                     })
@@ -50,7 +50,7 @@ describe('buildersGenrator', () => {
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as s from '../spec/resources/stateWithNestedState';`);
+                        expect(text).toContain(`import * as s from '../spec/resources/inner/stateInner';`);
                         done();
                     });
             });
@@ -66,7 +66,7 @@ describe('buildersGenrator', () => {
                         bg.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
                             if (filename.indexOf('stateWithExternalState') !== -1)
                                 f(b.toString('utf8'));
-                        }), tsa.create(logger), logger).run();
+                        }), tsa.create(logger), logger).runRecurse();
                     })
                 };
             })
@@ -149,6 +149,10 @@ describe('buildersGenrator', () => {
                 .do()
                 .then(text => {
                     expect(text).toContain(`import * as s from './stateTodos';`);
+                    done();
+                })
+                .catch(e => {
+                    console.log(e);
                     done();
                 });
         });

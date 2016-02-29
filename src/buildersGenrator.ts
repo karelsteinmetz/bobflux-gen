@@ -3,6 +3,7 @@ import * as tsa from './tsAnalyzer';
 import * as tsch from './tsCompilerHost';
 import * as log from './logger';
 import * as nameUnifier from './nameUnifier';
+import * as pu from './pathUtils';
 import * as ts from 'typescript';
 import * as fs from 'fs';
 import * as pathPlatformDependent from 'path';
@@ -22,7 +23,7 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 
 function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, rootStateKey: string): Promise<any> {
     return new Promise((f, r) => {
-        const writeCallback = (fn, c) => { project.writeFileCallback(fn, new Buffer(c, 'utf-8')); }
+        const writeCallback = (fn, c) =>  project.writeFileCallback(fn, new Buffer(c, 'utf-8'));
         g.loadSourceFiles(project, tsAnalyzer, logger, rootStateKey)
             .then(p => {
                 try {
@@ -40,11 +41,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
                         return [];
-                    let innerRelativePath = null;
-                    if (project.relativePath) {
-                        relativePath = resolveRelativePath(stateFilePath, project.relativePath);
-                        logger.info('Relative path: ', relativePath);
-                    }
+                    let buildersFilePath = createBuildersFilePath(stateFilePath, relativePath);
+                    let rootRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(buildersFilePath), path.dirname(stateFilePath));
                     function createForStateParams(state: tsa.IStateData, prefix: string = null): string {
                         let nexts: INextIteration[] = [];
                         let inner = data.states.map(state => {
@@ -63,12 +61,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                     let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                                     let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
                                     if (innerSourceFile) {
-                                        let innerRelativePath = null;
-                                        if (project.relativePath) {
-                                            relativePath = resolveRelativePath(innerFilePath, project.relativePath);
-                                            logger.info('Relative path: ', relativePath);
-                                        }
-                                        writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker, tsa.resolvePathStringLiteral), typeParts[1], relativePath, writeCallback, key);
+                                        let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath));
+                                        writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker, tsa.resolvePathStringLiteral), typeParts[1], innerRelativePath, writeCallback, key);
                                     }
                                 }
                                 let fType = f.isArray ? `${f.type}[]` : f.type;
@@ -106,8 +100,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     let fieldsContent = createForStateParams(mainState);
                     logger.info('Generating has been started for: ', stateFilePath);
                     writeCallback(
-                        createBuildersFilePath(stateFilePath),
-                        g.createFullImports(!relativePath ? './' + data.fileName : path.join(relativePath, data.fileName), data.imports)
+                        buildersFilePath,
+                        g.createFullImports(!relativePath ? './' + data.fileName : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName), data.imports)
                         + fieldsContent
                     );
                     logger.info('Generation ended');
@@ -124,11 +118,13 @@ interface INextIteration {
     prefix: string
 }
 
-function createBuildersFilePath(stateFilePath: string): string {
-    return `${path.join(path.dirname(stateFilePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.builders.ts`;
+function createBuildersFilePath(stateFilePath: string, relativePath: string): string {
+    return relativePath
+        ? `${path.join(path.join(path.dirname(stateFilePath), relativePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.builders.ts`
+        : `${path.join(path.dirname(stateFilePath)), path.basename(stateFilePath).replace(path.extname(stateFilePath), '')}.builders.ts`;
 }
 
-function resolveRelativePath(filePath: string, projectRelativePath: string): string {
+function resolveRelativePath(filePath: string, projectRelativePath: string, parentRelativePath: string = './'): string {
     let relativePath = path.join(path.dirname(filePath), projectRelativePath);
     return path.relative(relativePath, path.dirname(filePath));
 }

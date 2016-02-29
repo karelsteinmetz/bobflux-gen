@@ -33,7 +33,8 @@ export function run() {
             else
                 cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
                     .run()
-                    .then(r => logger.info('Cursors generator finished'));
+                    .then(r => logger.info('Cursors generator finished'))
+                    .catch(e => logger.error('Cursors generator finished with errors: ', e));
         });
     c
         .command("builders")
@@ -53,7 +54,8 @@ export function run() {
             }
             bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
                 .run()
-                .then(r => logger.info('Builders generator finished'));
+                .then(r => logger.info('Builders generator finished'))
+                .catch(e => logger.error('Builders generator finished with errors: ', e));
         });
     c.command('*', null, { noHelp: true }).action((com) => {
         logger.info('Invalid command: ' + com);
