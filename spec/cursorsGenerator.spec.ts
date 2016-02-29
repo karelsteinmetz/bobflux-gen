@@ -133,23 +133,74 @@ export const numbersCursor: bf.ICursor<s.INumber[]> = {
     });
 
     describe('stateWithExternalState', () => {
-        describe('file stateWithNestedState', () => {
-            beforeEach(() => {
-                testCase = {
-                    do: () => new Promise<string>((f, r) => {
-                        g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithNestedState') !== -1)
-                                f(b.toString('utf8'));
-                        }), tsa.create(logger), logger).runRecurse();
-                    })
-                };
+        describe('with rootStateKey', () => {
+            describe('file stateWithNestedState', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithNestedState') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger, 'root.subroot').runRecurse();
+                        })
+                    };
+                });
+
+                it('generates cursors for appState fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const rootKey = 'root.subroot.baseTypes';
+`);
+                            done();
+                        });
+                });
             });
 
-            it('generates cursors for appState fields', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text).toBe(`import * as s from './stateWithNestedState';
+            describe('file stateWithExternalState', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithExternalState') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger, 'root.subroot').run();
+                        })
+                    };
+                });
+                
+                it('generates cursors for appState fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const rootKey = 'root.subroot';
+`);
+                            done();
+                        });
+                });
+            });
+        });
+        
+        describe('without rootStateKey', () => {
+            describe('file stateWithNestedState', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithNestedState') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger).runRecurse();
+                        })
+                    };
+                });
+
+                it('generates cursors for appState fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toBe(`import * as s from './stateWithNestedState';
 import * as bf from 'bobflux';
 
 export const rootKey = 'baseTypes';
@@ -162,65 +213,65 @@ export const numberValueCursor: bf.ICursor<number> = {
     key: rootKey + '.numberValue'
 }
 `);
-                        done();
-                    });
-            });
-        });
-
-        describe('file stateWithExternalState', () => {
-            beforeEach(() => {
-                testCase = {
-                    do: () => new Promise<string>((f, r) => {
-                        g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithExternalState') !== -1)
-                                f(b.toString('utf8'));
-                        }), tsa.create(logger), logger).run();
-                    })
-                };
+                            done();
+                        });
+                });
             });
 
-            it('imports related state', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text.split('\n')[0]).toBe(`import * as s from './stateWithExternalState';`);
-                        done();
-                    })
-                    .catch(e => { expect(e).toBeUndefined(); done(); });
-            });
+            describe('file stateWithExternalState', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithExternalState') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger).run();
+                        })
+                    };
+                });
 
-            it('imports bobflux as node module', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text.split('\n')[1]).toBe(`import * as bf from 'bobflux';`);
-                        done();
-                    });
-            });
+                it('imports related state', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text.split('\n')[0]).toBe(`import * as s from './stateWithExternalState';`);
+                            done();
+                        })
+                        .catch(e => { expect(e).toBeUndefined(); done(); });
+                });
 
-            it('imports external state', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text.split('\n')[2]).toBe(`import * as ns from './stateWithNestedState';`);
-                        done();
-                    });
-            });
-            
-            it('generates rootCursor', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text.split('\n')[4]).toBe(`export const rootKey = bf.rootCursor.key;`);
-                        done();
-                    });
-            });
+                it('imports bobflux as node module', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text.split('\n')[1]).toBe(`import * as bf from 'bobflux';`);
+                            done();
+                        });
+                });
 
-            it('generates cursors for appState fields', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text).toBe(`import * as s from './stateWithExternalState';
+                it('imports external state', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text.split('\n')[2]).toBe(`import * as ns from './stateWithNestedState';`);
+                            done();
+                        });
+                });
+
+                it('generates rootCursor', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text.split('\n')[4]).toBe(`export const rootKey = bf.rootCursor.key;`);
+                            done();
+                        });
+                });
+
+                it('generates cursors for appState fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toBe(`import * as s from './stateWithExternalState';
 import * as bf from 'bobflux';
 import * as ns from './stateWithNestedState';
 
@@ -236,11 +287,12 @@ export const baseTypesCursor: bf.ICursor<ns.INestedState> = {
     key: 'baseTypes'
 }
 `);
-                        done();
-                    });
+                            done();
+                        });
+                });
             });
         });
-    });
+    })
 
     describe('stateWithNestedState', () => {
         beforeEach(() => {

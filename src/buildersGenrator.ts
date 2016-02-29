@@ -40,7 +40,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 function writeBuilders(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, relativePath: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string = null) {
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
-                        return [];
+                        return;
                     let buildersFilePath = createBuildersFilePath(stateFilePath, relativePath);
                     let rootRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(buildersFilePath), path.dirname(stateFilePath));
                     function createForStateParams(state: tsa.IStateData, prefix: string = null): string {
@@ -54,7 +54,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
 
 `
                             content += state.fields.map(f => {
-                                let key = g.createCursorKey(parentStateKey, prefix, f.name);
+                                let key = g.composeCursorKey(parentStateKey, prefix, f.name);
                                 let fieldType = f.isArray ? `${f.type}[]` : f.type;
                                 if (applyRecurse && g.isExternalState(fieldType)) {
                                     let typeParts = fieldType.split('.');

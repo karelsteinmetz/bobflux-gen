@@ -82,7 +82,7 @@ export function isExternalState(type: string): boolean {
     return type.split('.').length > 1;
 }
 
-export function createCursorKey(...parts: string[]): string {
+export function composeCursorKey(...parts: string[]): string {
     return parts.filter(p => p !== null).join('.');
 }
 
