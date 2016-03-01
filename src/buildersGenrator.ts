@@ -12,8 +12,6 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
 
-const stateImportKey = 's';
-
 export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, applyRecurse: boolean = false, rootStateKey: string = null): g.IGenerationProcess => {
     return {
         run: () => runBase(false, project, tsAnalyzer, logger, rootStateKey),
@@ -43,6 +41,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
                         return;
+                    let stateAlias = g.createUnusedAlias(g.stateImportKey, data.imports);
                     let buildersFilePath = pu.createBuildersFilePath(baseDir, relativeDir, stateFilePath);
                     let rootRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(buildersFilePath), path.dirname(stateFilePath));
                     function createForStateParams(state: tsa.IStateData, prefix: string = null): string {
@@ -50,9 +49,9 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         let inner = data.states.map(state => {
                             let nexts: INextIteration[] = [];
                             let name = `${nameUnifier.removeIfacePrefix(state.typeName)}Builder`;
-                            let stateName = `${stateImportKey}.${state.typeName}`;
+                            let stateName = `${stateAlias}.${state.typeName}`;
                             let content = `export class ${name} {
-    private state: ${stateName} = ${stateImportKey}.default();
+    private state: ${stateName} = ${stateAlias}.default();
 
 `
                             content += state.fields.map(f => {
@@ -70,7 +69,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 let fType = f.isArray ? `${f.type}[]` : f.type;
                                 let states = data.states.filter(s => s.typeName === f.type);
                                 if (states.length > 0)
-                                    fType = `${stateImportKey}.${fType}`;
+                                    fType = `${stateAlias}.${fType}`;
                                 let ct = `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', f.name)}(${f.name}: ${fType}): ${name} {
         this.state.${f.name} = ${f.name};
         return this;
@@ -103,7 +102,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     logger.info('Generating has been started for: ', stateFilePath);
                     writeCallback(
                         buildersFilePath,
-                        g.createFullImports('s', !relativePath ? './' + data.fileName : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName), data.imports)
+                        g.createFullImports(stateAlias, !relativePath ? './' + data.fileName : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName), data.imports)
                         + fieldsContent
                     );
                     logger.info('Generation ended');

@@ -132,8 +132,58 @@ export const numbersCursor: bf.ICursor<s.INumber[]> = {
         });
     });
 
-    describe('stateWithExternalState', () => {
+    describe('state with external state', () => {
         describe('with rootStateKey', () => {
+            describe('file stateWithInner', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithInner') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger, 'root.subroot').runRecurse();
+                        })
+                    };
+                });
+
+                it('contains rootKey', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const rootKey = 'root.subroot';
+`);
+                            done();
+                        });
+                });
+
+                it('contains correct import prefix of state fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const rootCursor: bf.ICursor<ss.IApplicationState> = {
+    key: rootKey
+}
+`);
+                            done();
+                        });
+                });
+
+                it('contains correct import prefix of external nested state fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const innerCursor: bf.ICursor<s.IInnerState> = {
+    key: rootKey + '.inner'
+}
+`);
+                            done();
+                        });
+                });
+            })
+
             describe('file stateWithNestedState', () => {
                 beforeEach(() => {
                     testCase = {
@@ -169,7 +219,7 @@ export const rootKey = 'root.subroot.baseTypes';
                         })
                     };
                 });
-                
+
                 it('generates cursors for appState fields', (done) => {
                     testCase
                         .do()
@@ -182,8 +232,63 @@ export const rootKey = 'root.subroot';
                 });
             });
         });
-        
+
         describe('without rootStateKey', () => {
+            describe('file stateWithInner', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithInner') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger).runRecurse();
+                        })
+                    };
+                });
+
+                it('contains import of state file', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`import * as ss from './stateWithInner';`);
+                            done();
+                        });
+                });
+
+                it('contains import of external nested state file', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`import * as s from './inner/stateInner';`);
+                            done();
+                        });
+                });
+
+                it('contains correct import prefix of state fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const rootCursor: bf.ICursor<ss.IApplicationState> = bf.rootCursor
+`);
+                            done();
+                        });
+                });
+
+                it('contains correct import prefix of external nested state fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const innerCursor: bf.ICursor<s.IInnerState> = {
+    key: 'inner'
+}
+`);
+                            done();
+                        });
+                });
+            })
+
             describe('file stateWithNestedState', () => {
                 beforeEach(() => {
                     testCase = {

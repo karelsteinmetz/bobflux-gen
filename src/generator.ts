@@ -87,13 +87,13 @@ export function composeCursorKey(...parts: string[]): string {
 }
 
 export function createFullImports(stateAlias: string, stateFilePath: string, imports: tsa.IImportData[]): string {
-    return `import * as ${createUnusedAlias(stateAlias, imports)} from '${stateFilePath}';
+    return `import * as ${stateAlias} from '${stateFilePath}';
 ${createImports(imports)}
 
 `;
 }
 
-function createUnusedAlias(key: string, imports: tsa.IImportData[]): string {
+export function createUnusedAlias(key: string, imports: tsa.IImportData[]): string {
     while (isAliasInImports(key, imports)) {
         key += key;
     }

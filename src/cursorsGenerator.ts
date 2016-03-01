@@ -32,6 +32,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
                         return;
+                    let stateAlias = g.createUnusedAlias(g.stateImportKey, data.imports);
                     const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
                     function createCursorsForStateFields(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
                         let nexts: INextIteration[] = [];
@@ -47,7 +48,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             }
                             let states = data.states.filter(s => s.typeName === f.type);
                             if (states.length > 0)
-                                fieldType = `${g.stateImportKey}.${fieldType}`;
+                                fieldType = `${stateAlias}.${fieldType}`;
                             if (f.isArray)
                                 return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
                             if (states.length > 0)
@@ -62,9 +63,9 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     logger.info('Generating has been started for: ', stateFilePath);
                     writeCallback(
                         createCursorsFilePath(stateFilePath),
-                        g.createFullImports('s', `./${data.fileName}`, data.imports)
+                        g.createFullImports(stateAlias, `./${data.fileName}`, data.imports)
                         + createRootKey(parentStateKey, bobfluxPrefix)
-                        + createRootCursor(parentStateKey, bobfluxPrefix, mainState.typeName)
+                        + createRootCursor(parentStateKey, bobfluxPrefix, stateAlias, mainState.typeName)
                         + fieldsContent
                     );
                     logger.info('Generation ended');
@@ -89,14 +90,14 @@ function createFieldCursor(prefix: string, key: string, fieldName: string, bobfl
 }
 
 
-function createRootCursor(key: string, bobfluxPrefix: string, typeName: string): string {
+function createRootCursor(key: string, bobfluxPrefix: string, stateAlias: string, typeName: string): string {
     return key
-        ? `export const rootCursor: ${bobfluxPrefix}.ICursor<s.${typeName}> = {
+        ? `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = {
     key: rootKey
 }
 
 `
-        : `export const rootCursor: ${bobfluxPrefix}.ICursor<s.${typeName}> = ${bobfluxPrefix}.rootCursor
+        : `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = ${bobfluxPrefix}.rootCursor
 
 `;
 }
