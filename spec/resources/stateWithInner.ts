@@ -1,6 +1,6 @@
 import * as bf from 'bobflux';
-import * as i from './inner/stateInner';
+import * as s from './inner/stateInner';
 
 export interface IApplicationState extends bf.IState {
-    inner: i.IInnerState
+    inner: s.IInnerState
 }

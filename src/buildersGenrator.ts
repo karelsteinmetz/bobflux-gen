@@ -103,7 +103,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     logger.info('Generating has been started for: ', stateFilePath);
                     writeCallback(
                         buildersFilePath,
-                        g.createFullImports(!relativePath ? './' + data.fileName : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName), data.imports)
+                        g.createFullImports('s', !relativePath ? './' + data.fileName : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName), data.imports)
                         + fieldsContent
                     );
                     logger.info('Generation ended');

@@ -86,11 +86,22 @@ export function composeCursorKey(...parts: string[]): string {
     return parts.filter(p => p !== null).join('.');
 }
 
-export function createFullImports(stateFilePath: string, imports: tsa.IImportData[]): string {
-    return `import * as s from '${stateFilePath}';
+export function createFullImports(stateAlias: string, stateFilePath: string, imports: tsa.IImportData[]): string {
+    return `import * as ${createUnusedAlias(stateAlias, imports)} from '${stateFilePath}';
 ${createImports(imports)}
 
 `;
+}
+
+function createUnusedAlias(key: string, imports: tsa.IImportData[]): string {
+    while (isAliasInImports(key, imports)) {
+        key += key;
+    }
+    return key;
+}
+
+function isAliasInImports(alias: string, imports: tsa.IImportData[]): boolean {
+    return imports.filter(i => i.prefix === alias).length > 0
 }
 
 export function createImports(imports: tsa.IImportData[]): string {

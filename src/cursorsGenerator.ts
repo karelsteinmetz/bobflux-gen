@@ -62,7 +62,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     logger.info('Generating has been started for: ', stateFilePath);
                     writeCallback(
                         createCursorsFilePath(stateFilePath),
-                        g.createFullImports(`./${data.fileName}`, data.imports)
+                        g.createFullImports('s', `./${data.fileName}`, data.imports)
                         + createRootKey(parentStateKey, bobfluxPrefix)
                         + createRootCursor(parentStateKey, bobfluxPrefix, mainState.typeName)
                         + fieldsContent
