@@ -22,6 +22,16 @@ describe('pathUtils', () => {
         });
     })
     
+    describe('createBuildersFilePath', () => {
+        it('creates path for root state builders', () => {
+            expect(pu.createBuildersFilePath('c:/app/src/', 'c:/app/spec', 'c:/app/src/state.ts')).toBe('c:\\app\\spec\\state.builders.ts');
+        });
+        
+        it('creates path for relative state builders', () => {
+            expect(pu.createBuildersFilePath('c:/app/src/', 'c:/app/spec', 'c:/app/src/todos/state.ts')).toBe('c:\\app\\spec\\todos\\state.builders.ts');
+        });
+    })
+    
     describe('path playground', () => {
         it('creates relative path', () => {
             expect(path.relative('c:/app/src/', 'c:/app/spec/')).toBe('..\\spec');

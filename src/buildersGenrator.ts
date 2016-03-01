@@ -26,6 +26,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         const writeCallback = (fn, c) =>  project.writeFileCallback(fn, new Buffer(c, 'utf-8'));
         g.loadSourceFiles(project, tsAnalyzer, logger)
             .then(p => {
+                let baseDir = path.dirname(p.stateFilePath);
+                let relativeDir = project.relativePath ? path.join(baseDir, project.relativePath) : baseDir;
                 try {
                     let filePath = path.join(path.dirname(p.stateFilePath), path.basename(p.stateFilePath));
                     try {
@@ -41,7 +43,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
                         return;
-                    let buildersFilePath = createBuildersFilePath(stateFilePath, relativePath);
+                    let buildersFilePath = pu.createBuildersFilePath(baseDir, relativeDir, stateFilePath);
                     let rootRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(buildersFilePath), path.dirname(stateFilePath));
                     function createForStateParams(state: tsa.IStateData, prefix: string = null): string {
                         let nexts: INextIteration[] = [];
@@ -61,7 +63,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                     let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                                     let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
                                     if (innerSourceFile) {
-                                        let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath));
+                                        let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath)).replace(/\\/g, "/");
                                         writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker, tsa.resolvePathStringLiteral), typeParts[1], innerRelativePath, writeCallback, key);
                                     }
                                 }
@@ -116,12 +118,6 @@ type PrefixMap = { [stateName: string]: string };
 interface INextIteration {
     state: tsa.IStateData
     prefix: string
-}
-
-function createBuildersFilePath(stateFilePath: string, relativePath: string): string {
-    return relativePath
-        ? `${path.join(path.join(path.dirname(stateFilePath), relativePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.builders.ts`
-        : `${path.join(path.dirname(stateFilePath)), path.basename(stateFilePath).replace(path.extname(stateFilePath), '')}.builders.ts`;
 }
 
 function resolveRelativePath(filePath: string, projectRelativePath: string, parentRelativePath: string = './'): string {
