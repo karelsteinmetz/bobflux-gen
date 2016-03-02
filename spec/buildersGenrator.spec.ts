@@ -17,7 +17,7 @@ describe('buildersGenrator', () => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
                         bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithInner') !== -1)
+                            if (filename.replace(/\\/g, "/").indexOf('/tests/stateWithInner.builders.ts') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests/'), tsa.create(logger), logger).runRecurse();
                     })
@@ -28,7 +28,7 @@ describe('buildersGenrator', () => {
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as s from '../spec/resources/stateWithInner';`);
+                        expect(text).toContain(`import * as ss from '../spec/resources/stateWithInner';`);
                         done();
                     });
             });
@@ -39,7 +39,7 @@ describe('buildersGenrator', () => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
                         bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateInner') !== -1)
+                            if (filename.replace(/\\/g, "/").indexOf('/tests/inner/stateInner.builders.ts') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests'), tsa.create(logger), logger).runRecurse();
                     })
@@ -50,7 +50,7 @@ describe('buildersGenrator', () => {
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as s from '../spec/resources/inner/stateInner';`);
+                        expect(text).toContain(`import * as s from '../../spec/resources/inner/stateInner';`);
                         done();
                     });
             });
