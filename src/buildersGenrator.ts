@@ -63,7 +63,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                     let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
                                     if (innerSourceFile) {
                                         let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath)).replace(/\\/g, "/");
-                                        writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker, tsa.resolvePathStringLiteral), typeParts[1], innerRelativePath, writeCallback, key);
+                                        writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker), typeParts[1], innerRelativePath, writeCallback, key);
                                     }
                                 }
                                 let fType = f.isArray ? `${f.type}[]` : f.type;

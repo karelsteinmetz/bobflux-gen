@@ -10,6 +10,32 @@ const path = pathPlatformDependent.posix;
 describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
+    
+    describe('enums', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', './stateWithEnum.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithEnum') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+
+        it('generates cursor for field of enum type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const someEnumCursor: bf.ICursor<s.SomeEnum> = {
+    key: 'someEnum'
+}
+`);
+                    done();
+                });
+        });
+    });
 
     describe('file stateTodos', () => {
         beforeEach(() => {

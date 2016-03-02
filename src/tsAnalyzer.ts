@@ -28,6 +28,10 @@ export interface IImportData {
     fullPath: string
 }
 
+export interface IEnumData {
+    name: string
+}
+
 export interface IStateSourceData {
     sourceFile: ts.SourceFile
     sourceDeps: [string, string][]
@@ -35,16 +39,17 @@ export interface IStateSourceData {
     fileName: string
     states: IStateData[],
     imports: IImportData[],
+    enums: IEnumData[],
     fluxImportAlias: string
 }
 
 export interface ITsAnalyzer {
-    getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker, resolvePathStringLiteral: (sl: ts.StringLiteral) => string) => IStateSourceData;
+    getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker) => IStateSourceData;
 }
 
 export let create = (logger: log.ILogger): ITsAnalyzer => {
     return {
-        getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker, resolvePathStringLiteral: (sl: ts.StringLiteral) => string): IStateSourceData => {
+        getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker): IStateSourceData => {
             var result: IStateSourceData = {
                 sourceFile: source,
                 sourceDeps: [],
@@ -52,19 +57,19 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 fileName: null,
                 states: [],
                 imports: [],
+                enums: [],
                 fluxImportAlias: null
             };
             let currentImport: IImportData = null;
 
             function visit(n: ts.Node) {
-                logger.debug('Visited kind: ', n.kind);
                 if (n.kind === ts.SyntaxKind.StringLiteral) { //9
                     let sl = <ts.StringLiteral>n;
                     logger.debug('StringLiteral: ', sl);
                     if (currentImport) {
                         currentImport.relativePath = sl.text;
                         currentImport.fullPath = resolvePathStringLiteral(sl);
-                    }                        
+                    }
                 }
                 if (n.kind === ts.SyntaxKind.Identifier) { //69
                     let iden = <ts.Identifier>n;
@@ -92,6 +97,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     logger.debug('NamespaceImport: ', ni);
                     currentImport.prefix = ni.name.getText();
                 }
+
                 if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
                     let ce = <ts.InterfaceDeclaration>n;
                     logger.debug('InterfaceDeclaration: ', ce);
@@ -107,24 +113,29 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                         currentImport = null;
                     }
                 }
+                else if (n.kind === ts.SyntaxKind.EnumDeclaration) { //218
+                    let en = <ts.EnumDeclaration>n;
+                    logger.debug('EnumDeclaration: ', en);
+                    result.enums.push({ name: en.name.getText() });
+                }
                 else if (n.kind === ts.SyntaxKind.TypeReference) { //151
                     logger.debug('TypeReference: ', n);
                 }
                 else if (n.kind === ts.SyntaxKind.PropertySignature) { //140
                     let ps = <ts.PropertySignature>n;
                     logger.debug('PropertySignature: ', ps);
-                    if (ps.parent.kind !== ts.SyntaxKind.InterfaceDeclaration)
-                        throw 'Properties in Interfaces are only allowed.'
-                    let iface = result.states.filter(s => s.typeName === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
-                    logger.debug('PropertySignature ps.type: ', ps.type);
-                    if (ps.type.kind === ts.SyntaxKind.TypeReference)
-                        iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true })
-                    else if (ps.type.kind === ts.SyntaxKind.ArrayType)
-                        iface.fields.push({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true })
-                    else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)
-                        iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeLiteralNode>ps.type).getText() })
-                    else
-                        iface.fields.push({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind) })
+                    if (ps.parent.kind === ts.SyntaxKind.InterfaceDeclaration) {
+                        let iface = result.states.filter(s => s.typeName === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
+                        logger.debug('PropertySignature ps.type: ', ps.type);
+                        if (ps.type.kind === ts.SyntaxKind.TypeReference)
+                            iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true })
+                        else if (ps.type.kind === ts.SyntaxKind.ArrayType)
+                            iface.fields.push({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true })
+                        else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)
+                            iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeLiteralNode>ps.type).getText() })
+                        else
+                            iface.fields.push({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind) })
+                    }
                 }
                 ts.forEachChild(n, visit);
             }

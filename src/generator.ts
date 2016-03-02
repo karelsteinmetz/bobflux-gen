@@ -66,7 +66,7 @@ export function loadSourceFiles(project: IGenerationProject, tsAnalyzer: tsa.ITs
             r(stateNotFoundError);
             return;
         }
-        let data = tsAnalyzer.getSourceData(foundSource, tc, tsa.resolvePathStringLiteral);
+        let data = tsAnalyzer.getSourceData(foundSource, tc);
         const writeCallback = (f, c) => { project.writeFileCallback(f, new Buffer(c, 'utf-8')); }
         let filePath = path.join(path.dirname(foundSource.path), foundSource.fileName);
         f({

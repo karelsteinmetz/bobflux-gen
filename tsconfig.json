@@ -39,6 +39,7 @@
         "./spec/cursorsGenerator.spec.ts",
         "./spec/nameUnifier.spec.ts",
         "./spec/pathUtils.spec.ts",
+        "./spec/tsAnalyzer.spec.ts",
         "./node_modules/typescript/lib/typescript.d.ts",
         "./typings/node/node.d.ts",
         "./typings/jasmine/jasmine.d.ts",
