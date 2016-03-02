@@ -177,7 +177,7 @@ describe('buildersGenrator', () => {
                 .then(text => {
                     expect(text).toContain(`
     public build(): s.IApplicationState {
-        s.bootstrap(this.state);
+        f.bootstrap(this.state);
         return this.state;
     }`);
                     done();
@@ -210,7 +210,7 @@ export class ApplicationStateBuilder {
     };
 
     public build(): s.IApplicationState {
-        s.bootstrap(this.state);
+        f.bootstrap(this.state);
         return this.state;
     }
 }

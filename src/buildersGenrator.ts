@@ -40,6 +40,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
                         return;
+                    const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
                     let stateAlias = g.createUnusedAlias(g.stateImportKey, data.imports);
                     let relativeDir = relativePath ? path.join(path.dirname(stateFilePath), relativePath) : rootBaseDir;
                     let buildersFilePath = pu.createBuildersFilePath(rootBaseDir, relativeDir, stateFilePath);
@@ -87,7 +88,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
 `;
                             if (currentStateName === state.typeName)
                                 content +=
-                                    `        s.bootstrap(this.state);
+                                    `        ${bobfluxPrefix}.bootstrap(this.state);
 `
                             content +=
                                 `        return this.state;
