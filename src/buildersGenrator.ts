@@ -51,12 +51,9 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         let nexts: INextIteration[] = [];
                         let name = `${nameUnifier.removeIfacePrefix(state.typeName)}Builder`;
                         let stateName = `${stateAlias}.${state.typeName}`;
-                        let content = `export class ${name} {
-    private state: ${stateName} = ${stateAlias}.default();
-
-`
+                        let content = createBuilderHeader(name, stateName, stateAlias)
                         content += state.fields.map(f => {
-                            logger.info('Field proccessing started for: ', f.name);                        
+                            logger.info('Field proccessing started for: ', f.name);
                             let key = g.composeCursorKey(parentStateKey, prefix, f.name);
                             let fieldType = f.isArray ? `${f.type}[]` : f.type;
                             if (applyRecurse && g.isExternalState(fieldType)) {
@@ -65,37 +62,21 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
                                 if (innerSourceFile) {
                                     let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath.replace(/\\/g, "/")) + '/').replace(/\\/g, "/");
-                                    logger.info('Called write builders for nested state: ', innerFilePath);                        
+                                    logger.info('Called write builders for nested state: ', innerFilePath);
                                     writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker), typeParts[1], innerRelativePath, writeCallback, key);
                                 }
                             }
                             let states = data.states.filter(s => s.typeName === f.type);
                             if (states.length > 0)
                                 fieldType = `${stateAlias}.${fieldType}`;
-                            let ct = `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', f.name)}(${f.name}: ${fieldType}): ${name} {
-        this.state.${f.name} = ${f.name};
-        return this;
-    };
-`
                             if (states.length > 0)
                                 nexts.push({ state: states[0], prefix: key });
                             if (states.length > 1)
                                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
                             logger.info('Field proccessing ended for: ', f.name);
-                            return ct;
+                            return createWithForField(name, f.name, fieldType);
                         }).join('\n');
-                        content += `
-    public build(): ${stateName} {
-`;
-                        if (currentStateName === state.typeName)
-                            content +=
-                                `        ${bobfluxPrefix}.bootstrap(this.state);
-`
-                        content +=
-                            `        return this.state;
-    }
-}
-`
+                        content += createBuilderFooter(stateName, currentStateName === state.typeName ? bobfluxPrefix : null);
                         logger.info('Fields proccessing ended for: ', state.typeName);
                         return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createFieldsContent(n.state, n.prefix)).join('\n');
                     }
@@ -135,4 +116,35 @@ interface INextIteration {
 function resolveRelativePath(filePath: string, projectRelativePath: string, parentRelativePath: string = './'): string {
     let relativePath = path.join(path.dirname(filePath), projectRelativePath);
     return path.relative(relativePath, path.dirname(filePath));
+}
+
+function createBuilderHeader(builderName: string, stateName: string, stateAlias: string) {
+    return `export class ${builderName} {
+    private state: ${stateName} = ${stateAlias}.default();
+
+`
+}
+
+function createWithForField(builderName: string, fieldName: string, fieldType: string): string {
+    return `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(${fieldName}: ${fieldType}): ${builderName} {
+        this.state.${fieldName} = ${fieldName};
+        return this;
+    };
+`
+}
+
+function createBuilderFooter(stateTypeName: string, bobfluxPrefix = null): string {
+    let content = `
+    public build(): ${stateTypeName} {
+`;
+    if (bobfluxPrefix)
+        content +=
+            `        ${bobfluxPrefix}.bootstrap(this.state);
+`
+    content +=
+        `        return this.state;
+    }
+}
+`
+    return content;
 }
