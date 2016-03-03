@@ -17,7 +17,7 @@ describe('buildersGenrator', () => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
                         bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                            if (filename.replace(/\\/g, "/").indexOf('/tests/stateWithInner.builders.ts') !== -1)
+                            if (filename.indexOf('/tests/stateWithInner.builders.ts') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests/'), tsa.create(logger), logger).runRecurse();
                     })
@@ -48,7 +48,7 @@ describe('buildersGenrator', () => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
                         bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                            if (filename.replace(/\\/g, "/").indexOf('/tests/inner/stateInner.builders.ts') !== -1)
+                            if (filename.indexOf('/tests/inner/stateInner.builders.ts') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests'), tsa.create(logger), logger).runRecurse();
                     })
@@ -88,7 +88,7 @@ describe('buildersGenrator', () => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
                         bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                            if (filename.replace(/\\/g, "/").indexOf('someState.builders.ts') !== -1)
+                            if (filename.indexOf('someState.builders.ts') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests'), tsa.create(logger), logger).runRecurse();
                     })

@@ -43,8 +43,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         return;
                     const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
                     let stateAlias = g.createUnusedAlias(g.stateImportKey, data.imports);
-                    let buildersFilePath = pu.createBuildersFilePath(rootBaseDir, relativeDir, stateFilePath);
-                    let rootRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(buildersFilePath.replace(/\\/g, "/")), path.dirname(stateFilePath));
+                    let buildersFilePath = pu.createBuildersFilePath(rootBaseDir, relativeDir, stateFilePath).replace(/\\/g, "/");
+                    let rootRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(buildersFilePath), path.dirname(stateFilePath));
                     let generatedBuilders: string[] = [];
 
                     function createFieldsContent(state: tsa.IStateData, prefix: string = null): string {
@@ -66,7 +66,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                                 let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
                                 if (innerSourceFile) {
-                                    let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath.replace(/\\/g, "/")) + '/').replace(/\\/g, "/");
+                                    let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath) + '/').replace(/\\/g, "/");
                                     logger.info('Called write builders for nested state: ', innerFilePath);
                                     writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker), typeParts[1], innerRelativePath, writeCallback, key);
                                 }
