@@ -536,15 +536,6 @@ export const secondNestedStringValueCursor: bf.ICursor<string> = {
                     done();
                 });
         });
-
-        it('prints current state', (done) => {
-            testCase
-                .do()
-                .then(text => {
-                    console.log(text);
-                    done();
-                });
-        });
     });
 
     describe('stateWithBaseTypes', () => {
