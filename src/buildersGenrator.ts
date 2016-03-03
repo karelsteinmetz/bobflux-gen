@@ -50,13 +50,13 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     function createFieldsContent(state: tsa.IStateData, prefix: string = null): string {
                         logger.info('Fields proccessing started for: ', state.typeName);
                         let nexts: INextIteration[] = [];
-                        let name = `${nameUnifier.removeIfacePrefix(state.typeName)}Builder`;
+                        let builderName = `${nameUnifier.removeIfacePrefix(state.typeName)}Builder`;
                         let stateTypeName = `${stateAlias}.${state.typeName}`;
                         if (generatedBuilders.filter(g => g === stateTypeName).length > 0)
                             return '';
 
                         generatedBuilders.push(stateTypeName);
-                        let content = createBuilderHeader(name, stateTypeName, stateAlias);
+                        let content = createBuilderHeader(builderName, stateTypeName, stateAlias);
                         content += state.fields.map(f => {
                             logger.info('Field proccessing started for: ', f.name);
                             let key = g.composeCursorKey(parentStateKey, prefix, f.name);
@@ -79,9 +79,10 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             if (states.length > 1)
                                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
                             logger.info('Field proccessing ended for: ', f.name);
-                            return createWithForField(name, f.name, fieldType);
+                            return createWithForField(builderName, f.name, fieldType);
                         }).join('\n');
                         content += createBuilderFooter(stateTypeName, currentStateName === state.typeName ? bobfluxPrefix : null);
+                        content += createIsBuilder(builderName, stateTypeName);
                         logger.info('Fields proccessing ended for: ', state.typeName);
                         return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createFieldsContent(n.state, n.prefix)).join('\n');
                     }
@@ -153,3 +154,13 @@ function createBuilderFooter(stateTypeName: string, bobfluxPrefix = null): strin
 `
     return content;
 }
+
+function createIsBuilder(builderName: string, stateTypeName: string): string {
+    return `
+export function is${builderName}(obj: ${stateTypeName} | ${builderName}): obj is ${builderName} {
+    return 'build' in obj;
+}
+`;
+}
+
+

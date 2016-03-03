@@ -11,6 +11,34 @@ describe('buildersGenrator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('is Builder helper', () => {
+        describe('file stateWithInner', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('/tests/stateWithInner.builders.ts') !== -1)
+                                f(b.toString('utf8'));
+                        }, '../../tests/'), tsa.create(logger), logger).runRecurse();
+                    })
+                };
+            })
+            
+            it('generates is builder helper', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
+export function isApplicationStateBuilder(obj: ss.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
+    return 'build' in obj;
+}
+`);
+                        done();
+                    });
+            });
+        })
+    })
+
     describe('relative path', () => {
         describe('file stateWithInner', () => {
             beforeEach(() => {
@@ -32,7 +60,7 @@ describe('buildersGenrator', () => {
                         done();
                     });
             });
-            
+
             it('imports external files', (done) => {
                 testCase
                     .do()
@@ -63,7 +91,7 @@ describe('buildersGenrator', () => {
                         done();
                     });
             });
-            
+
             it('imports external files', (done) => {
                 testCase
                     .do()
@@ -72,7 +100,7 @@ describe('buildersGenrator', () => {
                         done();
                     });
             });
-            
+
             it('imports nested state', (done) => {
                 testCase
                     .do()
@@ -82,7 +110,7 @@ describe('buildersGenrator', () => {
                     });
             });
         })
-        
+
         describe('file inner/some/someState', () => {
             beforeEach(() => {
                 testCase = {
