@@ -32,6 +32,15 @@ describe('buildersGenrator', () => {
                         done();
                     });
             });
+            
+            it('imports external files', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as f from '../spec/flux';`);
+                        done();
+                    });
+            });
         })
 
         describe('file stateInner', () => {
@@ -51,6 +60,15 @@ describe('buildersGenrator', () => {
                     .do()
                     .then(text => {
                         expect(text).toContain(`import * as s from '../../spec/resources/inner/stateInner';`);
+                        done();
+                    });
+            });
+            
+            it('imports external files', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as f from '../../spec/flux';`);
                         done();
                     });
             });

@@ -100,12 +100,23 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createForStateParams(n.state, n.prefix)).join('\n');
                     }
 
-                    let fieldsContent = createForStateParams(mainState);
                     logger.info('Generating has been started for: ', stateFilePath);
                     writeCallback(
                         buildersFilePath,
-                        g.createFullImports(stateAlias, !relativePath ? './' + data.fileName : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName), data.imports)
-                        + fieldsContent
+                        g.createFullImports(
+                            stateAlias,
+                            !relativePath
+                                ? './' + data.fileName
+                                : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName),
+                            !relativePath
+                                ? data.imports
+                                : data.imports.map(i => <tsa.IImportData>{ 
+                                    prefix: i.prefix,
+                                    fullPath: i.fullPath,
+                                    relativePath: path.join(rootRelativePath.replace(/\\/g, "/"), i.relativePath)
+                                })
+                        )
+                        + createForStateParams(mainState)
                     );
                     logger.info('Generation ended');
                 }

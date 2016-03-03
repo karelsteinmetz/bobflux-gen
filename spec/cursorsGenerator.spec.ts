@@ -188,7 +188,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: bf.ICursor<ss.IApplicationState> = {
+export const rootCursor: f.ICursor<ss.IApplicationState> = {
     key: rootKey
 }
 `);
@@ -201,7 +201,7 @@ export const rootCursor: bf.ICursor<ss.IApplicationState> = {
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const innerCursor: bf.ICursor<s.IInnerState> = {
+export const innerCursor: f.ICursor<s.IInnerState> = {
     key: rootKey + '.inner'
 }
 `);
@@ -295,7 +295,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: bf.ICursor<ss.IApplicationState> = bf.rootCursor
+export const rootCursor: f.ICursor<ss.IApplicationState> = f.rootCursor
 `);
                             done();
                         });
@@ -306,7 +306,7 @@ export const rootCursor: bf.ICursor<ss.IApplicationState> = bf.rootCursor
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const innerCursor: bf.ICursor<s.IInnerState> = {
+export const innerCursor: f.ICursor<s.IInnerState> = {
     key: 'inner'
 }
 `);

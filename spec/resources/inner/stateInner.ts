@@ -1,6 +1,6 @@
-import * as bf from 'bobflux';
+import * as f from '../../flux';
 
-export interface IInnerState extends bf.IState {
+export interface IInnerState extends f.IState {
     some: string;
 }
 
