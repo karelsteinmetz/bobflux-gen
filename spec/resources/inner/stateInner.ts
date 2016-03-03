@@ -1,11 +1,12 @@
 import * as f from '../../flux';
+import * as sm from './some/someState';
 
 export interface IInnerState extends f.IState {
-    some: string;
+    some: sm.ISomeState;
 }
 
 export default(): IInnerState => {
     return {
-        some: 'defaultValue'
+        some: sm.default()
     };
 }

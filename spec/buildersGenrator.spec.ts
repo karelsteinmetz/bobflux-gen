@@ -43,7 +43,7 @@ describe('buildersGenrator', () => {
             });
         })
 
-        describe('file stateInner', () => {
+        describe('file inner/stateInner', () => {
             beforeEach(() => {
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
@@ -69,6 +69,37 @@ describe('buildersGenrator', () => {
                     .do()
                     .then(text => {
                         expect(text).toContain(`import * as f from '../../spec/flux';`);
+                        done();
+                    });
+            });
+            
+            it('imports nested state', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as sm from '../../spec/resources/inner/some/someState';`);
+                        done();
+                    });
+            });
+        })
+        
+        describe('file inner/some/someState', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                            if (filename.replace(/\\/g, "/").indexOf('someState.builders.ts') !== -1)
+                                f(b.toString('utf8'));
+                        }, '../../tests'), tsa.create(logger), logger).runRecurse();
+                    })
+                };
+            })
+
+            it('imports state file', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`import * as s from '../../../spec/resources/inner/some/someState';`);
                         done();
                     });
             });
