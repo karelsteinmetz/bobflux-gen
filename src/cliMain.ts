@@ -11,7 +11,6 @@ import * as pathPlatformDependent from 'path';
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
 export function run() {
-    let logger = log.create();
     c
         .command("cursors")
         .alias("c")
@@ -20,7 +19,11 @@ export function run() {
         .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
         .option("-k, --parentStateKey <parentStateKey>", "defines key of parent state, it's suitable for nested states (default is empty)")
         .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
+        .option("-d, --debug <1/0>", "enables logging in debug level", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
+            let logger = humanTrue(o.debug)
+                ? log.create(true, true, true, true)
+                : log.create()
             if (o.parentStateKey)
                 logger.info(`Parent state cursor key '${o.parentStateKey}' has been set`);
             logger.info('Cursors generator started');
@@ -44,27 +47,34 @@ export function run() {
         .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
         .option("-s, --specRelativePath <specRelativePath>", "defines spec directory relative path from appStatePath (default is next to states)")
         .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
+        .option("-d, --debug <1/0>", "enables logging in debug level", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
+            let logger = humanTrue(o.debug)
+                ? log.create(true, true, true, true)
+                : log.create()
             logger.info('Builders generator started');
             if (humanTrue(o.recursively)) {
                 logger.info('Recurse generation has been set');
                 bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
                     .runRecurse()
                     .then(r => logger.info('Builders generator finished'))
+                    .catch(e => logger.error('Builders generator finished with errors: ', e));
             }
-            bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
-                .run()
-                .then(r => logger.info('Builders generator finished'))
-                .catch(e => logger.error('Builders generator finished with errors: ', e));
+            else
+                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
+                    .run()
+                    .then(r => logger.info('Builders generator finished'))
+                    .catch(e => logger.error('Builders generator finished with errors: ', e));
         });
     c.command('*', null, { noHelp: true }).action((com) => {
-        logger.info('Invalid command: ' + com);
+        console.log('Invalid command: ' + com);
     });
     c.parse(process.argv);
 }
 
 export function createProjectFromDir(logger: log.ILogger, dirPath: string, appStatePath: string = path.join(__dirname, './state.ts'), appStateName: string = 'IApplicationState', relativePath: string = null): g.IGenerationProject {
     let statePath = path.normalize(appStatePath.replace(/\\/g, '/'));
+    console.log('statePath: ', statePath);
     return {
         dir: dirPath.replace(/\\/g, '/'),
         appStateName: appStateName,
@@ -73,8 +83,6 @@ export function createProjectFromDir(logger: log.ILogger, dirPath: string, appSt
         tsOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES5, skipDefaultLibCheck: true },
         relativePath: relativePath,
         writeFileCallback: (filename: string, b: Buffer) => {
-            if (relativePath)
-                filename = path.join(path.dirname(filename), relativePath, path.basename(filename));
             logger.info("Writing started into " + filename);
             mkpathsync(path.dirname(filename));
             fs.writeFileSync(filename, b);
