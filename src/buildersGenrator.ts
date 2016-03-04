@@ -60,9 +60,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         content += state.fields.map(f => {
                             logger.info('Field proccessing started for: ', f.name);
                             let key = g.composeCursorKey(parentStateKey, prefix, f.name);
-                            let fieldType = f.isArray ? `${f.type}[]` : f.type;
-                            if (applyRecurse && g.isExternalState(fieldType)) {
-                                let typeParts = fieldType.split('.');
+                            if (applyRecurse && g.isExternalState(f.type)) {
+                                let typeParts = f.type.split('.');
                                 let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                                 let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
                                 if (innerSourceFile) {
@@ -72,14 +71,17 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 }
                             }
                             let states = data.states.filter(s => s.typeName === f.type);
-                            if (states.length > 0)
-                                fieldType = `${stateAlias}.${fieldType}`;
-                            if (states.length > 0)
-                                nexts.push({ state: states[0], prefix: key });
+                            let fieldBuilder: string = null;
                             if (states.length > 1)
                                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
                             logger.info('Field proccessing ended for: ', f.name);
-                            return createWithForField(builderName, f.name, fieldType);
+                            if (states.length > 0) {
+                                nexts.push({ state: states[0], prefix: key }); nexts.push({ state: states[0], prefix: key });
+                                let builderImport = g.isExternalState(f.type) ? `${stateAlias}Builders.` : '';
+                                return createWithForFieldAndBuilder(builderName, f.name, `${stateAlias}.${f.type}`, `${nameUnifier.removeIfacePrefix(f.type)}Builder`, builderImport, f.isArray);
+                            }
+                            else
+                                return createWithForField(builderName, f.name, f.type, f.isArray);
                         }).join('\n');
                         content += createBuilderFooter(stateTypeName, currentStateName === state.typeName ? bobfluxPrefix : null);
                         content += createIsBuilder(builderName, stateTypeName);
@@ -131,8 +133,22 @@ function createBuilderHeader(builderName: string, stateName: string, stateAlias:
 `
 }
 
-function createWithForField(builderName: string, fieldName: string, fieldType: string): string {
-    return `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(${fieldName}: ${fieldType}): ${builderName} {
+function createWithForFieldAndBuilder(builderName: string, fieldName: string, fieldType: string, fieldBuilder: string, fieldBuilderPrefix: string, isArray: boolean): string {
+    return isArray
+        ? `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(...${fieldName}: (${fieldType} | ${fieldBuilderPrefix}${fieldBuilder})[]): ${builderName} {
+        this.state.${fieldName} = ${fieldName}.map(i => ${fieldBuilderPrefix}is${fieldBuilder}(i) ? i.build() : i);
+        return this;
+    };
+`
+        : `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(${fieldName}: ${fieldType} | ${fieldBuilder}): ${builderName} {
+        this.state.${fieldName} = ${fieldBuilderPrefix}is${fieldBuilder}(${fieldName}) ? ${fieldName}.build() : ${fieldName};
+        return this;
+    };
+`
+}
+
+function createWithForField(builderName: string, fieldName: string, fieldType: string, isArray: boolean): string {
+    return `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(${fieldName}: ${isArray ? fieldType + '[]' : fieldType}): ${builderName} {
         this.state.${fieldName} = ${fieldName};
         return this;
     };

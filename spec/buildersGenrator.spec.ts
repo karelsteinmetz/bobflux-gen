@@ -234,13 +234,41 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                 });
         });
 
-        it('generates builder fields', (done) => {
+        it('generates builder fields for objects', (done) => {
             testCase
                 .do()
                 .then(text => {
                     expect(text).toContain(`
-    public withTodoSection(todoSection: s.ITodosState): ApplicationStateBuilder {
-        this.state.todoSection = todoSection;
+    public withTodoSection(todoSection: s.ITodosState | TodosStateBuilder): ApplicationStateBuilder {
+        this.state.todoSection = isTodosStateBuilder(todoSection) ? todoSection.build() : todoSection;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+        
+        it('generates builder for array fields', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withTodos(...todos: (s.ITodo | TodoBuilder)[]): TodosStateBuilder {
+        this.state.todos = todos.map(i => isTodoBuilder(i) ? i.build() : i);
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+        
+        it('generates builder for base types', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withId(id: number): TodoBuilder {
+        this.state.id = id;
         return this;
     };
 `);
@@ -281,8 +309,8 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
 export class ApplicationStateBuilder {
     private state: s.IApplicationState = s.default();
 
-    public withTodoSection(todoSection: s.ITodosState): ApplicationStateBuilder {
-        this.state.todoSection = todoSection;
+    public withTodoSection(todoSection: s.ITodosState | TodosStateBuilder): ApplicationStateBuilder {
+        this.state.todoSection = isTodosStateBuilder(todoSection) ? todoSection.build() : todoSection;
         return this;
     };
 
