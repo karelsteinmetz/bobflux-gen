@@ -282,7 +282,6 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                 .then(text => {
                     expect(text).toContain(`
     public build(): s.IApplicationState {
-        f.bootstrap(this.state);
         return this.state;
     }`);
                     done();
@@ -315,7 +314,6 @@ export class ApplicationStateBuilder {
     };
 
     public build(): s.IApplicationState {
-        f.bootstrap(this.state);
         return this.state;
     }
 }

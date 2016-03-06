@@ -83,7 +83,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             else
                                 return createWithForField(builderName, f.name, f.type, f.isArray);
                         }).join('\n');
-                        content += createBuilderFooter(stateTypeName, currentStateName === state.typeName ? bobfluxPrefix : null);
+                        content += createBuilderFooter(stateTypeName);
                         content += createIsBuilder(builderName, stateTypeName);
                         logger.info('Fields proccessing ended for: ', state.typeName);
                         return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createFieldsContent(n.state, n.prefix)).join('\n');
@@ -155,16 +155,10 @@ function createWithForField(builderName: string, fieldName: string, fieldType: s
 `
 }
 
-function createBuilderFooter(stateTypeName: string, bobfluxPrefix = null): string {
+function createBuilderFooter(stateTypeName: string): string {
     let content = `
     public build(): ${stateTypeName} {
-`;
-    if (bobfluxPrefix)
-        content +=
-            `        ${bobfluxPrefix}.bootstrap(this.state);
-`
-    content +=
-        `        return this.state;
+        return this.state;
     }
 }
 `
