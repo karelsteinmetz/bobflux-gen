@@ -108,3 +108,7 @@ export function createImports(imports: tsa.IImportData[]): string {
     return imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join(`
 `);
 }
+
+export function isFieldEnumType(fieldType: string, enums: tsa.IEnumData[]): boolean {
+    return enums.filter(e => e.name === fieldType).length > 0;
+}

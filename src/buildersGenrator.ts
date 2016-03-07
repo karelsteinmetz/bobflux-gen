@@ -81,7 +81,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 return createWithForFieldAndBuilder(builderName, f.name, `${stateAlias}.${f.type}`, `${nameUnifier.removeIfacePrefix(f.type)}Builder`, builderImport, f.isArray);
                             }
                             else
-                                return createWithForField(builderName, f.name, f.type, f.isArray);
+                                return createWithForField(builderName, f.name, g.isFieldEnumType(f.type, data.enums) ? `${stateAlias}.${f.type}` : f.type, f.isArray);
                         }).join('\n');
                         content += createBuilderFooter(stateTypeName);
                         content += createIsBuilder(builderName, stateTypeName);

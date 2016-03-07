@@ -55,8 +55,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 nexts.push({ state: states[0], prefix: key });
                             if (states.length > 1)
                                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
-                            if (isFieldEnumType(fieldType, data.enums))
-                               fieldType = `${stateAlias}.${fieldType}`;
+                            if (g.isFieldEnumType(fieldType, data.enums))
+                                fieldType = `${stateAlias}.${fieldType}`;
                             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
                         }).join('\n');
                         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(n.state, bobfluxPrefix, n.prefix)).join('\n');
@@ -76,10 +76,6 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             })
             .catch(e => r(e));
     })
-}
-
-function isFieldEnumType(fieldType: string, enums: tsa.IEnumData[]): boolean {
-    return enums.filter(e => e.name === fieldType).length > 0;    
 }
 
 function createRootKey(key: string, bobfluxPrefix: string): string {
