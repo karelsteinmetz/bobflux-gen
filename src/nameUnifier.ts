@@ -12,6 +12,11 @@ export function removeIfacePrefix(propName: string, prefix: string = 'I'): strin
     return propName.slice(1);
 }
 
+export function removePostfix(propName: string, postfix: string) {
+    let expectedIndex = propName.length - postfix.length;
+    return propName.toLowerCase().lastIndexOf(postfix.toLowerCase()) === expectedIndex ? propName.slice(0, expectedIndex) : propName;
+}
+
 function firstToUpper(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }

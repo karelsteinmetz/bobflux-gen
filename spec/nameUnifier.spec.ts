@@ -1,7 +1,5 @@
 import * as nu from '../src/nameUnifier';
 import * as pathPlatformDependent from 'path';
-
-// const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 import * as path from 'path';
 
 describe('nameUnifier', () => {
@@ -16,6 +14,18 @@ describe('nameUnifier', () => {
         it('removes prefix', () => {
             expect(nu.removeIfacePrefix('IAppState', 'I'))
                 .toBe('AppState');
+        });
+    });
+    
+    describe('removePostfix', () => {
+        it('removes postfix', () => {
+            expect(nu.removePostfix('IAppState', 'State'))
+                .toBe('IApp');
+        });
+        
+        it('removes postfix on the end', () => {
+            expect(nu.removePostfix('IStateAppState', 'State'))
+                .toBe('IStateApp');
         });
     });
 });
