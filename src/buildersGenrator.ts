@@ -56,7 +56,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             return '';
 
                         generatedBuilders.push(stateTypeName);
-                        let content = createBuilderHeader(builderName, stateTypeName, stateAlias);
+                        let content = createBuilderHeader(builderName, stateTypeName, state.typeName, stateAlias);
                         content += state.fields.map(f => {
                             logger.info('Field proccessing started for: ', f.name);
                             let key = g.composeCursorKey(parentStateKey, prefix, f.name);
@@ -126,9 +126,9 @@ function resolveRelativePath(filePath: string, projectRelativePath: string, pare
     return path.relative(relativePath, path.dirname(filePath));
 }
 
-function createBuilderHeader(builderName: string, stateName: string, stateAlias: string) {
+function createBuilderHeader(builderName: string, stateName: string, stateTypeName: string, stateAlias: string) {
     return `export class ${builderName} {
-    private state: ${stateName} = ${stateAlias}.default();
+    private state: ${stateName} = ${stateAlias}.createDefault${nameUnifier.removeIfacePrefix(stateTypeName)}();
 
 `
 }
@@ -172,5 +172,3 @@ export function is${builderName}(obj: ${stateTypeName} | ${builderName}): obj is
 }
 `;
 }
-
-

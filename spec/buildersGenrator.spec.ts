@@ -306,7 +306,7 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                 .then(text => {
                     expect(text).toContain(`
 export class ApplicationStateBuilder {
-    private state: s.IApplicationState = s.default();
+    private state: s.IApplicationState = s.createDefaultApplicationState();
 
     public withTodoSection(todoSection: s.ITodosState | TodosStateBuilder): ApplicationStateBuilder {
         this.state.todoSection = isTodosStateBuilder(todoSection) ? todoSection.build() : todoSection;
