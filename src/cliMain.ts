@@ -47,21 +47,24 @@ export function run() {
         .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
         .option("-s, --specRelativePath <specRelativePath>", "defines spec directory relative path from appStatePath (default is next to states)")
         .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
+        .option("-k, --parentStateKey <parentStateKey>", "defines key of parent state, it's suitable for nested states (default is empty)")
         .option("-d, --debug <1/0>", "enables logging in debug level", /^(true|false|1|0|t|f|y|n)$/i, "0")
         .action((o) => {
             let logger = humanTrue(o.debug)
                 ? log.create(true, true, true, true)
-                : log.create()
+                : log.create();
+            if (o.parentStateKey)
+                logger.info(`Parent state cursor key '${o.parentStateKey}' has been set`);
             logger.info('Builders generator started');
             if (humanTrue(o.recursively)) {
                 logger.info('Recurse generation has been set');
-                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
+                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger, o.parentStateKey)
                     .runRecurse()
                     .then(r => logger.info('Builders generator finished'))
                     .catch(e => logger.error('Builders generator finished with errors: ', e));
             }
             else
-                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger)
+                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger, o.parentStateKey)
                     .run()
                     .then(r => logger.info('Builders generator finished'))
                     .catch(e => logger.error('Builders generator finished with errors: ', e));

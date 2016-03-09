@@ -20,3 +20,11 @@ export function removePostfix(propName: string, postfix: string) {
 function firstToUpper(text: string): string {
     return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+export function createDomString(cursorKey: string, stateProperty: string): string {
+    let obj = null;
+    cursorKey.split('.').reverse().forEach(k => {
+        obj = obj === null ? `{ ${k}: ${stateProperty} }` : `{ ${k}: ${obj} }`;
+    });
+    return obj;
+}

@@ -12,7 +12,7 @@ const path = pathPlatformDependent.posix; // This works everythere, just use for
 
 var defaultLibFilename = path.join(path.dirname(require.resolve("typescript").replace(/\\/g, "/")), "lib.es6.d.ts");
 
-export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, applyRecurse: boolean = false, rootStateKey: string = null): g.IGenerationProcess => {
+export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, rootStateKey: string = null): g.IGenerationProcess => {
     return {
         run: () => runBase(false, project, tsAnalyzer, logger, rootStateKey),
         runRecurse: () => runBase(true, project, tsAnalyzer, logger, rootStateKey)
@@ -37,7 +37,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                     logger.error('Error on cursors writing.', e);
                 }
 
-                function writeBuilders(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, relativePath: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string = null) {
+                function writeBuilders(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, relativePath: string,
+                    writeCallback: (filePath: string, content: string) => void, parentStateKey: string) {
                     let mainState = g.resolveState(data.states, currentStateName);
                     if (!mainState)
                         return;
@@ -59,7 +60,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         let content = createBuilderHeader(builderName, stateTypeName, state.typeName, stateAlias);
                         content += state.fields.map(f => {
                             logger.info('Field proccessing started for: ', f.name);
-                            let key = g.composeCursorKey(parentStateKey, prefix, f.name);
+                            let key = g.composeCursorKey(prefix, f.name);
                             if (applyRecurse && g.isExternalState(f.type)) {
                                 let typeParts = f.type.split('.');
                                 let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
@@ -83,7 +84,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             else
                                 return createWithForField(builderName, f.name, g.isFieldEnumType(f.type, data.enums) ? `${stateAlias}.${f.type}` : f.type, f.isArray);
                         }).join('\n');
-                        content += createBuilderFooter(stateTypeName);
+                        content += createBuilderFooter(stateTypeName, bobfluxPrefix, prefix);
                         content += createIsBuilder(builderName, stateTypeName);
                         logger.info('Fields proccessing ended for: ', state.typeName);
                         return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createFieldsContent(n.state, n.prefix)).join('\n');
@@ -105,7 +106,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                     relativePath: path.join(rootRelativePath.replace(/\\/g, "/"), i.relativePath)
                                 })
                         )
-                        + createFieldsContent(mainState)
+                        + createFieldsContent(mainState, parentStateKey)
                     );
                     logger.info('Generating ended for: ', stateFilePath);
                 }
@@ -155,14 +156,18 @@ function createWithForField(builderName: string, fieldName: string, fieldType: s
 `
 }
 
-function createBuilderFooter(stateTypeName: string): string {
-    let content = `
+function createBuilderFooter(stateTypeName: string, bobfluxPrefix: string, rootStateKey: string): string {
+    return `
     public build(): ${stateTypeName} {
+        return this.state;
+    }
+    
+    public buildToStore(): ${stateTypeName} {
+        ${bobfluxPrefix}.bootstrap(${rootStateKey ? nameUnifier.createDomString(rootStateKey, 'this.state') : 'this.state'});
         return this.state;
     }
 }
 `
-    return content;
 }
 
 function createIsBuilder(builderName: string, stateTypeName: string): string {

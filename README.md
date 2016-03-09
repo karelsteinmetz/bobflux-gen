@@ -31,6 +31,7 @@ Inspired by [bobril-build](https://github.com/Bobris/bobril-build/blob/master/RE
   * "-p, --appStatePath <appStatePath>" - defines pattren for state files search (default is ./state.ts)
   * "-n, --appStateName <appStateName>" - defines root name of Application state (default is IApplicationState)
   * "-s, --specRelativePath <specRelativePath>" - defines spec directory relative path from appStatePath (default is next to states)
+  * "-k, --parentStateKey <parentStateKey>" - defines key of parent state, it's suitable for nested states (default is empty)
   * "-r, --recursively <1/0>" - enables recursively generation for nested states (default is 0)
 
 3. just look at all *.builders.ts

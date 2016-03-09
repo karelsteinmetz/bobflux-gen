@@ -11,6 +11,62 @@ describe('buildersGenrator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
+    describe('buildToStore', () => {
+        describe('without parent state key', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateTodos.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateTodos') !== -1)
+                                f(b.toString('utf8'));
+                        }), tsa.create(logger), logger).run();
+                    })
+                };
+            });
+
+            it('generates builder for direct store saving', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
+    public buildToStore(): s.ITodosState {
+        f.bootstrap({ todoSection: this.state });
+        return this.state;
+    }
+`);
+                        done();
+                    });
+            });
+        });
+        
+        describe('with parent state key', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        bg.default(aProject('IApplicationState', './stateTodos.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateTodos') !== -1)
+                                f(b.toString('utf8'));
+                        }), tsa.create(logger), logger, 'some.root.state.key').run();
+                    })
+                };
+            });
+
+            it('generates builder for direct store saving', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
+    public buildToStore(): s.ITodosState {
+        f.bootstrap({ some: { root: { state: { key: { todoSection: this.state } } } } });
+        return this.state;
+    }
+`);
+                        done();
+                    });
+            });
+        });
+    });
+
     describe('is Builder helper', () => {
         describe('file stateWithInner', () => {
             beforeEach(() => {
@@ -23,7 +79,7 @@ describe('buildersGenrator', () => {
                     })
                 };
             })
-            
+
             it('generates is builder helper', (done) => {
                 testCase
                     .do()
@@ -247,7 +303,7 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                     done();
                 });
         });
-        
+
         it('generates builder for array fields', (done) => {
             testCase
                 .do()
@@ -261,7 +317,7 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                     done();
                 });
         });
-        
+
         it('generates builder for base types', (done) => {
             testCase
                 .do()
@@ -300,7 +356,7 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                 });
         });
 
-        it('generates builder for todos section', (done) => {
+        it('generates builder for application', (done) => {
             testCase
                 .do()
                 .then(text => {
@@ -314,6 +370,11 @@ export class ApplicationStateBuilder {
     };
 
     public build(): s.IApplicationState {
+        return this.state;
+    }
+    
+    public buildToStore(): s.IApplicationState {
+        f.bootstrap(this.state);
         return this.state;
     }
 }
