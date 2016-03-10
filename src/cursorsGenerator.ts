@@ -44,6 +44,9 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             let fieldType = f.isArray ? `${f.type}[]` : f.type;
             if (applyRecurse && g.isExternalState(fieldType)) {
                 let typeParts = fieldType.split('.');
+                let foundImport = g.findImportAlias(data.imports, typeParts[0]);
+                if (foundImport === null)
+                    return '';
                 let innerFilePath = path.join(path.dirname(params.stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {

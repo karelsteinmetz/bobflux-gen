@@ -113,9 +113,14 @@ export function isFieldEnumType(fieldType: string, enums: tsa.IEnumData[]): bool
 }
 
 export function isRouteComponentState(...heritages: string[]): boolean {
-    return heritages.filter(h => h.indexOf('.IRouteComponentState') !== -1).length > 0; 
+    return heritages.filter(h => h.indexOf('.IRouteComponentState') !== -1).length > 0;
 }
 
 export function isComponentState(...heritages: string[]): boolean {
-    return heritages.filter(h => h.indexOf('.IState') !== -1 || h.indexOf('.IComponentState') !== -1).length > 0; 
+    return heritages.filter(h => h.indexOf('.IState') !== -1 || h.indexOf('.IComponentState') !== -1).length > 0;
+}
+
+export function findImportAlias(imports: tsa.IImportData[], prefix: string): tsa.IImportData {
+    let i = imports.filter(i => i.prefix === prefix);
+    return i.length > 0 ? i[0] : null;
 }
