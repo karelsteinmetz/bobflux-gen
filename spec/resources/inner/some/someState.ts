@@ -1,6 +1,6 @@
 import * as f from '../../../flux';
 
-export interface ISomeState extends f.IState {
+export interface ISomeState extends f.IRouteComponentState {
     someField: string;
 }
 

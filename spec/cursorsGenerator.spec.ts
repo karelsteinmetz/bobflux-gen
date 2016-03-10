@@ -37,7 +37,7 @@ export const someEnumCursor: bf.ICursor<s.SomeEnum> = {
         });
     });
 
-    describe('file stateTodos', () => {
+    describe('state todos', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
@@ -90,7 +90,7 @@ export const todoSectionEditedTodoNameCursor: f.ICursor<string> = {
         });
     });
 
-    describe('file stateWithMap', () => {
+    describe('state with map', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
@@ -122,7 +122,7 @@ export const stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
         });
     });
 
-    describe('file stateWithArray', () => {
+    describe('state with array', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
@@ -210,30 +210,6 @@ export const innerCursor: f.ICursor<s.IInnerState> = {
                 });
             })
 
-            describe('file stateWithNestedState', () => {
-                beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithNestedState') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger, 'root.subroot').runRecurse();
-                        })
-                    };
-                });
-
-                it('generates cursors for appState fields', (done) => {
-                    testCase
-                        .do()
-                        .then(text => {
-                            expect(text).toContain(`
-export const rootKey = 'root.subroot.baseTypes';
-`);
-                            done();
-                        });
-                });
-            });
-
             describe('file stateWithExternalState', () => {
                 beforeEach(() => {
                     testCase = {
@@ -315,40 +291,6 @@ export const innerCursor: f.ICursor<s.IInnerState> = {
                 });
             })
 
-            describe('file stateWithNestedState', () => {
-                beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithNestedState') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).runRecurse();
-                        })
-                    };
-                });
-
-                it('generates cursors for appState fields', (done) => {
-                    testCase
-                        .do()
-                        .then(text => {
-                            expect(text).toBe(`import * as s from './stateWithNestedState';
-import * as bf from 'bobflux';
-
-export const rootKey = 'baseTypes';
-
-export const rootCursor: bf.ICursor<s.INestedState> = {
-    key: rootKey
-}
-
-export const numberValueCursor: bf.ICursor<number> = {
-    key: rootKey + '.numberValue'
-}
-`);
-                            done();
-                        });
-                });
-            });
-
             describe('file stateWithExternalState', () => {
                 beforeEach(() => {
                     testCase = {
@@ -356,7 +298,7 @@ export const numberValueCursor: bf.ICursor<number> = {
                             g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
                                 if (filename.indexOf('stateWithExternalState') !== -1)
                                     f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).run();
+                            }), tsa.create(logger), logger).runRecurse();
                         })
                     };
                 });
@@ -398,24 +340,29 @@ export const numberValueCursor: bf.ICursor<number> = {
                         });
                 });
 
-                it('generates cursors for appState fields', (done) => {
+                it('generates cursors for appState fields from stateWithExternalState', (done) => {
                     testCase
                         .do()
                         .then(text => {
-                            expect(text).toBe(`import * as s from './stateWithExternalState';
-import * as bf from 'bobflux';
-import * as ns from './stateWithNestedState';
-
-export const rootKey = bf.rootCursor.key;
-
-export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
-
-export const stringValueCursor: bf.ICursor<string> = {
+                            expect(text).toContain(`export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
 }
 
-export const baseTypesCursor: bf.ICursor<ns.INestedState> = {
-    key: 'baseTypes'
+export const nestedComponentStateCursor: bf.ICursor<ns.INestedState> = {
+    key: 'nestedComponentState'
+}
+`);
+                            done();
+                        });
+                });
+                
+                it('generates cursors for appState fields from stateWithNestedState', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const nestedComponentStateNumberValueCursor: bf.ICursor<number> = {
+    key: 'nestedComponentState.numberValue'
 }
 `);
                             done();
@@ -538,7 +485,7 @@ export const secondNestedStringValueCursor: bf.ICursor<string> = {
         });
     });
 
-    describe('stateWithBaseTypes', () => {
+    describe('state with base types', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {

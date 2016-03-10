@@ -232,8 +232,8 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
         return this;
     };
 
-    public withBaseTypes(baseTypes: ns.INestedState): ApplicationStateBuilder {
-        this.state.baseTypes = baseTypes;
+    public withNestedComponentState(nestedComponentState: ns.INestedState): ApplicationStateBuilder {
+        this.state.nestedComponentState = nestedComponentState;
         return this;
     };
 `);

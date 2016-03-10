@@ -3,5 +3,5 @@ import * as ns from './stateWithNestedState';
 
 export interface IApplicationState extends bf.IState {
     stringValue: string
-    baseTypes: ns.INestedState
+    nestedComponentState: ns.INestedState
 }

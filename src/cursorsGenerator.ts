@@ -19,58 +19,70 @@ export default (project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logg
 }
 
 function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyzer: tsa.ITsAnalyzer, logger: log.ILogger, rootStateKey: string): Promise<any> {
+    const writeCallback = (fn, c) => { project.writeFileCallback(fn, new Buffer(c, 'utf-8')); }
+    function writeCursors(params: g.ILoadedParams, currentStateName: string, rootStateKey: string) {
+        let stateFilePath = params.stateFilePath;
+        let mainState = g.resolveState(params.data.states, currentStateName);
+        if (!mainState)
+            return;
+        const stateAlias = g.createUnusedAlias(g.stateImportKey, params.data.imports);
+        const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
+        logger.info('Generating has been started for: ', stateFilePath);
+        writeCallback(
+            createCursorsFilePath(stateFilePath),
+            g.createFullImports(stateAlias, `./${params.data.fileName}`, params.data.imports)
+            + createRootKey(rootStateKey, bobfluxPrefix)
+            + createRootCursor(rootStateKey, bobfluxPrefix, stateAlias, mainState.typeName)
+            + createCursorsForStateFields(params, rootStateKey, params.data, mainState, bobfluxPrefix, stateAlias)
+        );
+        logger.info('Generating ended for: ', stateFilePath);
+    }
+    function createCursorsForStateFields(params: g.ILoadedParams, parentStateKey: string, data: tsa.IStateSourceData, state: tsa.IStateData, bobfluxPrefix: string, stateAlias: string, prefix: string = null): string {
+        let nexts: INextIteration[] = [];
+        let inner = state.fields.map(f => {
+            let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
+            let fieldType = f.isArray ? `${f.type}[]` : f.type;
+            if (applyRecurse && g.isExternalState(fieldType)) {
+                let typeParts = fieldType.split('.');
+                let innerFilePath = path.join(path.dirname(params.stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
+                let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
+                if (innerSourceFile) {
+                    let innerData = tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker);
+                    let innerResolvedState = g.resolveState(innerData.states, typeParts[1]);
+                    if (innerResolvedState)
+                        if (g.isRouteComponentState(...innerResolvedState.heritages))
+                            writeCursors({
+                                stateFilePath: innerSourceFile.path,
+                                data: tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker),
+                                sourceFiles: params.sourceFiles,
+                                typeChecker: params.typeChecker
+                            }, typeParts[1], g.composeCursorKey(parentStateKey, key));
+                        else
+                            nexts.push({ state: innerResolvedState, prefix: key });
+                }
+            }
+            let states = data.states.filter(s => s.typeName === f.type);
+            if (states.length > 0)
+                fieldType = `${stateAlias}.${fieldType}`;
+            if (f.isArray)
+                return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
+            if (states.length > 0)
+                nexts.push({ state: states[0], prefix: key });
+            if (states.length > 1)
+                throw 'Two states with same name could not be parsed. It\'s compilation error.';
+            if (g.isFieldEnumType(fieldType, data.enums))
+                fieldType = `${stateAlias}.${fieldType}`;
+            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
+        }).join('\n');
+        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, data, n.state, bobfluxPrefix, stateAlias, n.prefix)).join('\n');
+    }
     return new Promise((f, r) => {
-        const writeCallback = (fn, c) => { project.writeFileCallback(fn, new Buffer(c, 'utf-8')); }
         g.loadSourceFiles(project, tsAnalyzer, logger)
             .then(p => {
                 try {
-                    writeCursors(p.stateFilePath, p.data, project.appStateName, writeCallback, rootStateKey);
+                    writeCursors(p, project.appStateName, rootStateKey);
                 } catch (e) {
                     logger.error('Error on cursors writing.', e);
-                }
-                function writeCursors(stateFilePath: string, data: tsa.IStateSourceData, currentStateName: string, writeCallback: (filePath: string, content: string) => void, parentStateKey: string) {
-                    let mainState = g.resolveState(data.states, currentStateName);
-                    if (!mainState)
-                        return;
-                    let stateAlias = g.createUnusedAlias(g.stateImportKey, data.imports);
-                    const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
-                    function createCursorsForStateFields(state: tsa.IStateData, bobfluxPrefix: string, prefix: string = null): string {
-                        let nexts: INextIteration[] = [];
-                        let inner = state.fields.map(f => {
-                            let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
-                            let fieldType = f.isArray ? `${f.type}[]` : f.type;
-                            if (applyRecurse && g.isExternalState(fieldType)) {
-                                let typeParts = fieldType.split('.');
-                                let innerFilePath = path.join(path.dirname(stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
-                                let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
-                                if (innerSourceFile)
-                                    writeCursors(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker), typeParts[1], writeCallback, g.composeCursorKey(parentStateKey, key));
-                            }
-                            let states = data.states.filter(s => s.typeName === f.type);
-                            if (states.length > 0)
-                                fieldType = `${stateAlias}.${fieldType}`;
-                            if (f.isArray)
-                                return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
-                            if (states.length > 0)
-                                nexts.push({ state: states[0], prefix: key });
-                            if (states.length > 1)
-                                throw 'Two states with same name could not be parsed. It\'s compilation error.';
-                            if (g.isFieldEnumType(fieldType, data.enums))
-                                fieldType = `${stateAlias}.${fieldType}`;
-                            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
-                        }).join('\n');
-                        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(n.state, bobfluxPrefix, n.prefix)).join('\n');
-                    }
-                    let fieldsContent = createCursorsForStateFields(mainState, bobfluxPrefix);
-                    logger.info('Generating has been started for: ', stateFilePath);
-                    writeCallback(
-                        createCursorsFilePath(stateFilePath),
-                        g.createFullImports(stateAlias, `./${data.fileName}`, data.imports)
-                        + createRootKey(parentStateKey, bobfluxPrefix)
-                        + createRootCursor(parentStateKey, bobfluxPrefix, stateAlias, mainState.typeName)
-                        + fieldsContent
-                    );
-                    logger.info('Generation ended');
                 }
                 f();
             })

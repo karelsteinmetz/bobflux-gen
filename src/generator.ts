@@ -26,7 +26,7 @@ export const stateNotFoundError = 'Main state file could not be found.';
 export const stateImportKey = 's';
 
 export function resolveBobfluxPrefix(mainState: tsa.IStateData): string {
-    let founds = mainState.heritages.filter(h => h.indexOf('.IState') !== -1)
+    let founds = mainState.heritages.filter(h => h.indexOf('.IState') !== -1 || h.indexOf('.IRouteComponentState') !== -1 || h.indexOf('.IComponentState') !== -1)
     return (founds.length === 0) ? 'bf' : founds[0].split('.')[0];
 }
 
@@ -67,7 +67,6 @@ export function loadSourceFiles(project: IGenerationProject, tsAnalyzer: tsa.ITs
             return;
         }
         let data = tsAnalyzer.getSourceData(foundSource, tc);
-        const writeCallback = (f, c) => { project.writeFileCallback(f, new Buffer(c, 'utf-8')); }
         let filePath = path.join(path.dirname(foundSource.path), foundSource.fileName);
         f({
             stateFilePath: filePath,
@@ -111,4 +110,12 @@ export function createImports(imports: tsa.IImportData[]): string {
 
 export function isFieldEnumType(fieldType: string, enums: tsa.IEnumData[]): boolean {
     return enums.filter(e => e.name === fieldType).length > 0;
+}
+
+export function isRouteComponentState(...heritages: string[]): boolean {
+    return heritages.filter(h => h.indexOf('.IRouteComponentState') !== -1).length > 0; 
+}
+
+export function isComponentState(...heritages: string[]): boolean {
+    return heritages.filter(h => h.indexOf('.IState') !== -1 || h.indexOf('.IComponentState') !== -1).length > 0; 
 }
