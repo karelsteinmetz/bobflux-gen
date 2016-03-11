@@ -30,7 +30,7 @@ describe('cursorsGenerator', () => {
                     expect(text).toContain(`
 export const someEnumCursor: bf.ICursor<s.SomeEnum> = {
     key: 'someEnum'
-}
+};
 `);
                     done();
                 });
@@ -58,31 +58,31 @@ import * as f from './flux';
 
 export const rootKey = f.rootCursor.key;
 
-export const rootCursor: f.ICursor<s.IApplicationState> = f.rootCursor
+export const rootCursor: f.ICursor<s.IApplicationState> = f.rootCursor;
 
 export const todoSectionCursor: f.ICursor<s.ITodosState> = {
     key: 'todoSection'
-}
+};
 
 export const todoSectionEditedTodoCursor: f.ICursor<s.ITodo> = {
     key: 'todoSection.editedTodo'
-}
+};
 
 export const todoSectionTodosCursor: f.ICursor<s.ITodo[]> = {
     key: 'todoSection.todos'
-}
+};
 
 export const todoSectionEditedTodoIdCursor: f.ICursor<number> = {
     key: 'todoSection.editedTodo.id'
-}
+};
 
 export const todoSectionEditedTodoIsDoneCursor: f.ICursor<boolean> = {
     key: 'todoSection.editedTodo.isDone'
-}
+};
 
 export const todoSectionEditedTodoNameCursor: f.ICursor<string> = {
     key: 'todoSection.editedTodo.name'
-}
+};
 `);
                     done();
                 })
@@ -111,11 +111,11 @@ import * as bf from 'bobflux';
 
 export const rootKey = bf.rootCursor.key;
 
-export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
 export const stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
     key: 'stringCounts'
-}
+};
 `);
                     done();
                 });
@@ -143,15 +143,15 @@ import * as bf from 'bobflux';
 
 export const rootKey = bf.rootCursor.key;
 
-export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
 export const stringsCursor: bf.ICursor<string[]> = {
     key: 'strings'
-}
+};
 
 export const numbersCursor: bf.ICursor<s.INumber[]> = {
     key: 'numbers'
-}
+};
 `);
                     done();
                 });
@@ -190,7 +190,7 @@ export const rootKey = 'root.subroot';
                             expect(text).toContain(`
 export const rootCursor: f.ICursor<ss.IApplicationState> = {
     key: rootKey
-}
+};
 `);
                             done();
                         });
@@ -203,7 +203,7 @@ export const rootCursor: f.ICursor<ss.IApplicationState> = {
                             expect(text).toContain(`
 export const innerCursor: f.ICursor<s.IInnerState> = {
     key: rootKey + '.inner'
-}
+};
 `);
                             done();
                         });
@@ -271,7 +271,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: f.ICursor<ss.IApplicationState> = f.rootCursor
+export const rootCursor: f.ICursor<ss.IApplicationState> = f.rootCursor;
 `);
                             done();
                         });
@@ -284,7 +284,7 @@ export const rootCursor: f.ICursor<ss.IApplicationState> = f.rootCursor
                             expect(text).toContain(`
 export const innerCursor: f.ICursor<s.IInnerState> = {
     key: 'inner'
-}
+};
 `);
                             done();
                         });
@@ -346,11 +346,11 @@ export const innerCursor: f.ICursor<s.IInnerState> = {
                         .then(text => {
                             expect(text).toContain(`export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
-}
+};
 
 export const nestedComponentStateCursor: bf.ICursor<ns.INestedState> = {
     key: 'nestedComponentState'
-}
+};
 `);
                             done();
                         });
@@ -363,7 +363,7 @@ export const nestedComponentStateCursor: bf.ICursor<ns.INestedState> = {
                             expect(text).toContain(`
 export const nestedComponentStateNumberValueCursor: bf.ICursor<number> = {
     key: 'nestedComponentState.numberValue'
-}
+};
 `);
                             done();
                         });
@@ -405,7 +405,7 @@ export const nestedComponentStateNumberValueCursor: bf.ICursor<number> = {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[5]).toBe(`export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+                    expect(text.split('\n')[5]).toBe(`export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;`);
                     done();
                 });
         });
@@ -417,7 +417,7 @@ export const nestedComponentStateNumberValueCursor: bf.ICursor<number> = {
                     expect(text).toContain(`
 export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
-}
+};
 `);
                     done();
                 });
@@ -430,7 +430,7 @@ export const stringValueCursor: bf.ICursor<string> = {
                     expect(text).toContain(`
 export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
-}
+};
 `);
                     done();
                 });
@@ -443,7 +443,7 @@ export const stringValueCursor: bf.ICursor<string> = {
                     expect(text).toContain(`
 export const secondNestedStringValueCursor: bf.ICursor<string> = {
     key: 'secondNested.stringValue'
-}
+};
 `);
                     done();
                 });
@@ -458,27 +458,27 @@ import * as bf from 'bobflux';
 
 export const rootKey = bf.rootCursor.key;
 
-export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
 export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
-}
+};
 
 export const nestedCursor: bf.ICursor<s.INestedState> = {
     key: 'nested'
-}
+};
 
 export const secondNestedCursor: bf.ICursor<s.ISecondNestedState> = {
     key: 'secondNested'
-}
+};
 
 export const nestedNumberValueCursor: bf.ICursor<number> = {
     key: 'nested.numberValue'
-}
+};
 
 export const secondNestedStringValueCursor: bf.ICursor<string> = {
     key: 'secondNested.stringValue'
-}
+};
 `);
                     done();
                 });
@@ -519,7 +519,7 @@ export const secondNestedStringValueCursor: bf.ICursor<string> = {
             testCase
                 .do()
                 .then(text => {
-                    expect(text.split('\n')[5]).toBe(`export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor`);
+                    expect(text.split('\n')[5]).toBe(`export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;`);
                     done();
                 });
         });
@@ -533,15 +533,15 @@ import * as bf from 'bobflux';
 
 export const rootKey = bf.rootCursor.key;
 
-export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor
+export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
 export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
-}
+};
 
 export const numberValueCursor: bf.ICursor<number> = {
     key: 'numberValue'
-}
+};
 `);
                     done();
                 });
@@ -568,15 +568,15 @@ export const rootKey = 'parentCursorKey';
 
 export const rootCursor: bf.ICursor<s.IApplicationState> = {
     key: rootKey
-}
+};
 
 export const stringValueCursor: bf.ICursor<string> = {
     key: rootKey + '.stringValue'
-}
+};
 
 export const numberValueCursor: bf.ICursor<number> = {
     key: rootKey + '.numberValue'
-}
+};
 `);
                 done();
             });

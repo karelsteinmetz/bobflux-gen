@@ -102,7 +102,7 @@ function createRootKey(key: string, bobfluxPrefix: string): string {
 function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, withRoot: boolean): string {
     return `export const ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}Cursor: ${bobfluxPrefix}.ICursor<${typeName}> = {
     key: ${withRoot ? `rootKey + '.${key}'` : `'${key}'`}
-}
+};
 `;
 }
 
@@ -111,10 +111,10 @@ function createRootCursor(key: string, bobfluxPrefix: string, stateAlias: string
     return key
         ? `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = {
     key: rootKey
-}
+};
 
 `
-        : `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = ${bobfluxPrefix}.rootCursor
+        : `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = ${bobfluxPrefix}.rootCursor;
 
 `;
 }
