@@ -108,13 +108,14 @@ function createFieldCursor(prefix: string, key: string, fieldName: string, bobfl
 
 
 function createRootCursor(key: string, bobfluxPrefix: string, stateAlias: string, typeName: string): string {
-    return key
+    return `${key
         ? `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = {
     key: rootKey
 };
-
 `
         : `export const rootCursor: ${bobfluxPrefix}.ICursor<${stateAlias}.${typeName}> = ${bobfluxPrefix}.rootCursor;
+`}
+export default rootCursor;
 
 `;
 }

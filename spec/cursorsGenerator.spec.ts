@@ -60,6 +60,8 @@ export const rootKey = f.rootCursor.key;
 
 export const rootCursor: f.ICursor<s.IApplicationState> = f.rootCursor;
 
+export default rootCursor;
+
 export const todoSectionCursor: f.ICursor<s.ITodosState> = {
     key: 'todoSection'
 };
@@ -113,6 +115,8 @@ export const rootKey = bf.rootCursor.key;
 
 export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
+export default rootCursor;
+
 export const stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
     key: 'stringCounts'
 };
@@ -144,6 +148,8 @@ import * as bf from 'bobflux';
 export const rootKey = bf.rootCursor.key;
 
 export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
+
+export default rootCursor;
 
 export const stringsCursor: bf.ICursor<string[]> = {
     key: 'strings'
@@ -191,6 +197,8 @@ export const rootKey = 'root.subroot';
 export const rootCursor: f.ICursor<ss.IApplicationState> = {
     key: rootKey
 };
+
+export default rootCursor;
 `);
                             done();
                         });
@@ -460,6 +468,8 @@ export const rootKey = bf.rootCursor.key;
 
 export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
+export default rootCursor;
+
 export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
 };
@@ -535,6 +545,8 @@ export const rootKey = bf.rootCursor.key;
 
 export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
+export default rootCursor;
+
 export const stringValueCursor: bf.ICursor<string> = {
     key: 'stringValue'
 };
@@ -569,6 +581,8 @@ export const rootKey = 'parentCursorKey';
 export const rootCursor: bf.ICursor<s.IApplicationState> = {
     key: rootKey
 };
+
+export default rootCursor;
 
 export const stringValueCursor: bf.ICursor<string> = {
     key: rootKey + '.stringValue'
