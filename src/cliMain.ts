@@ -10,7 +10,7 @@ import * as pathPlatformDependent from 'path';
 
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
-export function run() {
+export function run(version: string) {
     c
         .command("cursors")
         .alias("c")
@@ -29,12 +29,12 @@ export function run() {
             logger.info('Cursors generator started');
             if (humanTrue(o.recursively)) {
                 logger.info('Recurse generation has been set');
-                cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
+                cg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
                     .runRecurse()
                     .then(r => logger.info('Cursors generator finished'))
             }
             else
-                cg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
+                cg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
                     .run()
                     .then(r => logger.info('Cursors generator finished'))
                     .catch(e => logger.error('Cursors generator finished with errors: ', e));
@@ -58,13 +58,13 @@ export function run() {
             logger.info('Builders generator started');
             if (humanTrue(o.recursively)) {
                 logger.info('Recurse generation has been set');
-                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger, o.parentStateKey)
+                bg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger, o.parentStateKey)
                     .runRecurse()
                     .then(r => logger.info('Builders generator finished'))
                     .catch(e => logger.error('Builders generator finished with errors: ', e));
             }
             else
-                bg.default(createProjectFromDir(logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger, o.parentStateKey)
+                bg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName, o.specRelativePath), tsa.create(logger), logger, o.parentStateKey)
                     .run()
                     .then(r => logger.info('Builders generator finished'))
                     .catch(e => logger.error('Builders generator finished with errors: ', e));
@@ -75,10 +75,11 @@ export function run() {
     c.parse(process.argv);
 }
 
-export function createProjectFromDir(logger: log.ILogger, dirPath: string, appStatePath: string = path.join(__dirname, './state.ts'), appStateName: string = 'IApplicationState', relativePath: string = null): g.IGenerationProject {
+export function createProjectFromDir(version: string, logger: log.ILogger, dirPath: string, appStatePath: string = path.join(__dirname, './state.ts'), appStateName: string = 'IApplicationState', relativePath: string = null): g.IGenerationProject {
     let statePath = path.normalize(appStatePath.replace(/\\/g, '/'));
     console.log('statePath: ', statePath);
     return {
+        version: version,
         dir: dirPath.replace(/\\/g, '/'),
         appStateName: appStateName,
         appSourcesDirectory: path.dirname(statePath),

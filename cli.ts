@@ -2,15 +2,20 @@ import * as pathPlatformDependent from "path";
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 import * as fs from "fs";
 
-function printIntroLine() {
+function loadVersion(): string {
     let pp = pathPlatformDependent.join(__dirname, 'package.json');
     let bbPackageJson = JSON.parse(fs.readFileSync(pp, 'utf8'));
-    console.log('Bobflux-generator ' + bbPackageJson.version + ' - ' + process.cwd());
+    return bbPackageJson.version;
+}
+
+function printIntroLine(version: string) {
+    console.log('Bobflux-generator ' + version + ' - ' + process.cwd());
 }
 
 function run() {
-    printIntroLine();
-    require("./src/cliMain").run();
+    let version = loadVersion();
+    printIntroLine(version);
+    require("./src/cliMain").run(version);
 }
 
 run();
