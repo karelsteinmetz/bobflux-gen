@@ -114,6 +114,10 @@ export function isFieldEnumType(fieldType: string, enums: tsa.IEnumData[]): bool
     return enums.filter(e => e.name === fieldType).length > 0;
 }
 
+export function isCustomType(fieldType: string, customeTypes: tsa.ICustomTypeData[]): boolean {
+    return customeTypes.filter(e => e.name === fieldType).length > 0;
+}
+
 export function isRouteComponentState(...heritages: string[]): boolean {
     return heritages.filter(h => h.indexOf('.IRouteComponentState') !== -1).length > 0;
 }

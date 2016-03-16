@@ -32,6 +32,10 @@ export interface IEnumData {
     name: string
 }
 
+export interface ICustomTypeData {
+    name: string
+}
+
 export interface IStateSourceData {
     sourceFile: ts.SourceFile
     sourceDeps: [string, string][]
@@ -40,6 +44,7 @@ export interface IStateSourceData {
     states: IStateData[],
     imports: IImportData[],
     enums: IEnumData[],
+    customTypes: ICustomTypeData[],
     fluxImportAlias: string
 }
 
@@ -58,6 +63,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 states: [],
                 imports: [],
                 enums: [],
+                customTypes: [],
                 fluxImportAlias: null
             };
             let currentImport: IImportData = null;
@@ -117,6 +123,11 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     let en = <ts.EnumDeclaration>n;
                     logger.debug('EnumDeclaration: ', en);
                     result.enums.push({ name: en.name.getText() });
+                }
+                else if (n.kind === ts.SyntaxKind.TypeAliasDeclaration) { //218
+                    let tad = <ts.TypeAliasDeclaration>n;
+                    logger.debug('TypeAliasDeclaration: ', tad);
+                    result.customTypes.push({ name: tad.name.getText() });
                 }
                 else if (n.kind === ts.SyntaxKind.TypeReference) { //151
                     logger.debug('TypeReference: ', n);

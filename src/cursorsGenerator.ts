@@ -76,6 +76,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
             if (g.isFieldEnumType(fieldType, data.enums))
                 fieldType = `${stateAlias}.${fieldType}`;
+            if (g.isCustomType(fieldType, data.customTypes))
+                fieldType = `${stateAlias}.${fieldType}`;
             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
         }).join('\n');
         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, data, n.state, bobfluxPrefix, stateAlias, n.prefix)).join('\n');

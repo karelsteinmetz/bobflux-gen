@@ -20,11 +20,10 @@ describe('tsAnalyzer', () => {
             program = aProgram('./spec/resources/', 'stateWithEnum.ts');
         });
         
-        it('has data', () => {
+        it('has parsed data', () => {
             let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
             expect(data.enums.length).toBe(1);
-            expect(data.enums[0].name).toBe('SomeEnum');
         });
 
         it('gets name', () => {
@@ -32,6 +31,27 @@ describe('tsAnalyzer', () => {
 
             expect(data.enums.length).toBe(1);
             expect(data.enums[0].name).toBe('SomeEnum');
+        });
+    })
+    
+    describe('internal custom type', () => {
+        let program: ts.Program 
+        
+        beforeEach(() => {
+            program = aProgram('./spec/resources/', 'stateWithType.ts');
+        });
+        
+        it('has parsed data', () => {
+            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+            expect(data.customTypes.length).toBe(1);
+        });
+
+        it('gets name', () => {
+            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+            expect(data.customTypes.length).toBe(1);
+            expect(data.customTypes[0].name).toBe('MyMap');
         });
     })
 
