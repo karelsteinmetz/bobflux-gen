@@ -62,7 +62,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 typeChecker: params.typeChecker
                             }, typeParts[1], g.composeCursorKey(parentStateKey, key));
                         else if (g.isComponentState(...innerResolvedState.heritages))
-                            nexts.push({ state: innerResolvedState, prefix: key });
+                            nexts.push({ state: innerResolvedState, data: innerData, externalFileAlias: foundImport.prefix, prefix: key });
                 }
             }
             let states = data.states.filter(s => s.typeName === f.type);
@@ -71,7 +71,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             if (f.isArray)
                 return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
             if (states.length > 0)
-                nexts.push({ state: states[0], prefix: key });
+                nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
             if (g.isFieldEnumType(fieldType, data.enums))
@@ -80,7 +80,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 fieldType = `${stateAlias}.${fieldType}`;
             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
         }).join('\n');
-        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, data, n.state, bobfluxPrefix, stateAlias, n.prefix)).join('\n');
+        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
     }
     return new Promise((f, r) => {
         g.loadSourceFiles(project, tsAnalyzer, logger)
@@ -128,7 +128,9 @@ export function createCursorsFilePath(stateFilePath: string): string {
 }
 
 interface INextIteration {
+    externalFileAlias: string
     state: tsa.IStateData
+    data: tsa.IStateSourceData    
     prefix: string
 }
 

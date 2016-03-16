@@ -38,28 +38,66 @@ describe('cursorsGenerator', () => {
     });
     
     describe('custom types', () => {
-        beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateWithType.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateWithType') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
-        });
+        describe('internals', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        g.default(aProject('IMapState', './stateWithType.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithType') !== -1)
+                                f(b.toString('utf8'));
+                        }), tsa.create(logger), logger).run();
+                    })
+                };
+            });
 
-        it('generates cursor for field of declared type', (done) => {
-            testCase
-                .do()
-                .then(text => {
-                    expect(text).toContain(`
+            it('generates cursor for field of custom type', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
 export const someMapCursor: bf.ICursor<s.MyMap> = {
     key: 'someMap'
-};
-`);
-                    done();
-                });
+};`);
+                        done();
+                    });
+            });
+        });
+        
+        describe('externals', () => {
+            beforeEach(() => {
+                testCase = {
+                    do: () => new Promise<string>((f, r) => {
+                        g.default(aProject('IApplicationState', './stateWithExternalType.ts', (filename: string, b: Buffer) => {
+                            if (filename.indexOf('stateWithExternalType') !== -1)
+                                f(b.toString('utf8'));
+                        }), tsa.create(logger), logger).runRecurse();
+                    })
+                };
+            });
+
+            it('generates cursor for field of declared type', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
+export const someExternalMapCursor: bf.ICursor<e.MyMap> = {
+    key: 'someExternalMap'
+};`);
+                        done();
+                    });
+            });
+            
+            it('generates cursor for field of custom type in IComponentState', (done) => {
+                testCase
+                    .do()
+                    .then(text => {
+                        expect(text).toContain(`
+export const externalStateSomeMapCursor: bf.ICursor<e.MyMap> = {
+    key: 'externalState.someMap'
+};`);
+                        done();
+                    });
+            });
         });
     });    
     

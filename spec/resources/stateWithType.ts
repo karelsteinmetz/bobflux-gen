@@ -1,6 +1,6 @@
 import * as bf from 'bobflux';
 
-export interface IApplicationState extends bf.IState {
+export interface IMapState extends bf.IComponentState {
     someMap: MyMap;
 }
 
