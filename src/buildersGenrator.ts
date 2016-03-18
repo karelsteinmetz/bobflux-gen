@@ -136,7 +136,7 @@ function resolveRelativePath(filePath: string, projectRelativePath: string, pare
 
 function createBuilderHeader(builderName: string, stateName: string, stateTypeName: string, stateAlias: string) {
     return `export class ${builderName} {
-    private state: ${stateName} = ${stateAlias}.createDefault${nameUnifier.removeIfacePrefix(stateTypeName)}();
+    protected state: ${stateName} = ${stateAlias}.createDefault${nameUnifier.removeIfacePrefix(stateTypeName)}();
 
 `
 }
