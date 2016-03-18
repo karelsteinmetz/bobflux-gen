@@ -10,7 +10,7 @@ const path = pathPlatformDependent.posix;
 describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
-    
+
     describe('auto-generated header', () => {
         beforeEach(() => {
             testCase = {
@@ -36,7 +36,7 @@ describe('cursorsGenerator', () => {
                 });
         });
     });
-    
+
     describe('custom types', () => {
         describe('internals', () => {
             beforeEach(() => {
@@ -62,7 +62,7 @@ export const someMapCursor: bf.ICursor<s.MyMap> = {
                     });
             });
         });
-        
+
         describe('externals', () => {
             beforeEach(() => {
                 testCase = {
@@ -86,7 +86,7 @@ export const someExternalMapCursor: bf.ICursor<e.MyMap> = {
                         done();
                     });
             });
-            
+
             it('generates cursor for field of custom type in IComponentState', (done) => {
                 testCase
                     .do()
@@ -99,8 +99,8 @@ export const externalStateSomeMapCursor: bf.ICursor<e.MyMap> = {
                     });
             });
         });
-    });    
-    
+    });
+
     describe('enums', () => {
         beforeEach(() => {
             testCase = {
@@ -453,7 +453,7 @@ export const nestedComponentStateCursor: bf.ICursor<ns.INestedState> = {
                             done();
                         });
                 });
-                
+
                 it('generates cursors for appState fields from stateWithNestedState', (done) => {
                     testCase
                         .do()
