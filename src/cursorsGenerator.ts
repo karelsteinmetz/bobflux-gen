@@ -109,6 +109,16 @@ function createFieldCursor(prefix: string, key: string, fieldName: string, bobfl
 `;
 }
 
+function createArrayIndexFactoryCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, withRoot: boolean): string {
+    return `
+export const ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}IndexFactoryCursor: (index: number) => ${bobfluxPrefix}.IIndexCursorReslut = (index: number) => {
+    return {
+        cursor: <${bobfluxPrefix}.ICursor<${typeName}>>{ key: ${withRoot ? `rootKey + '.${key}.'` : `'${key}.'`} + index }
+    };
+};
+`;
+}
+
 
 function createRootCursor(key: string, bobfluxPrefix: string, stateAlias: string, typeName: string): string {
     return `${key
@@ -130,7 +140,7 @@ export function createCursorsFilePath(stateFilePath: string): string {
 interface INextIteration {
     externalFileAlias: string
     state: tsa.IStateData
-    data: tsa.IStateSourceData    
+    data: tsa.IStateSourceData
     prefix: string
 }
 
