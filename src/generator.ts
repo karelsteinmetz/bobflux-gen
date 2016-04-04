@@ -123,7 +123,7 @@ export function isRouteComponentState(...heritages: string[]): boolean {
 }
 
 export function isComponentState(...heritages: string[]): boolean {
-    return heritages.filter(h => h.indexOf('.IState') !== -1 || h.indexOf('.IComponentState') !== -1).length > 0;
+    return heritages.filter(h => h.indexOf('.IComponentState') !== -1).length > 0;
 }
 
 export function findImportAlias(imports: tsa.IImportData[], prefix: string): tsa.IImportData {
