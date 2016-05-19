@@ -3,59 +3,22 @@ import * as log from './logger';
 import * as ts from 'typescript';
 import * as pathPlatformDependent from 'path';
 
+import * as bv from './visitors/bfgVisitor';
+
+export * from './visitors/bfgVisitor';
+
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
 export const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
 
-export interface IStateFieldData {
-    name: string
-    type: string
-    isState?: boolean
-    isArray?: boolean
-}
-
-export interface IStateData {
-    typeName: string
-    type: ts.SyntaxKind
-    fileName: string
-    fields: IStateFieldData[]
-    heritages: string[]
-}
-
-export interface IImportData {
-    prefix: string
-    relativePath: string
-    fullPath: string
-}
-
-export interface IEnumData {
-    name: string
-}
-
-export interface ICustomTypeData {
-    name: string
-}
-
-export interface IStateSourceData {
-    sourceFile: ts.SourceFile
-    sourceDeps: [string, string][]
-    filePath: string
-    fileName: string
-    states: IStateData[],
-    imports: IImportData[],
-    enums: IEnumData[],
-    customTypes: ICustomTypeData[],
-    fluxImportAlias: string
-}
-
 export interface ITsAnalyzer {
-    getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker) => IStateSourceData;
+    getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker) => bv.IStateSourceData;
 }
 
 export let create = (logger: log.ILogger): ITsAnalyzer => {
     return {
-        getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker): IStateSourceData => {
-            var result: IStateSourceData = {
+        getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker): bv.IStateSourceData => {
+            var result: bv.IStateSourceData = {
                 sourceFile: source,
                 sourceDeps: [],
                 filePath: null,
@@ -66,9 +29,12 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 customTypes: [],
                 fluxImportAlias: null
             };
-            let currentImport: IImportData = null;
+            let currentImport: bv.IImportData = null;
+            let bvVisitor = bv.createAllBfgVisitors(() => result);
 
             function visit(n: ts.Node) {
+                bvVisitor.accept(n) && bvVisitor.visit(n);
+
                 if (n.kind === ts.SyntaxKind.StringLiteral) { //9
                     let sl = <ts.StringLiteral>n;
                     logger.debug('StringLiteral: ', sl);
@@ -112,8 +78,15 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                         type: ce.kind,
                         fileName: (<ts.SourceFile>ce.parent).fileName,
                         fields: [],
-                        heritages: ce.heritageClauses ? ce.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : []
+                        heritages: ce.heritageClauses ? ce.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : [],
+                        source: bv.StateSource.iface
                     });
+                    if (currentImport) {
+                        result.imports.push(currentImport)
+                        currentImport = null;
+                    }
+                }
+                else if (n.kind === ts.SyntaxKind.ClassDeclaration) { //215
                     if (currentImport) {
                         result.imports.push(currentImport)
                         currentImport = null;

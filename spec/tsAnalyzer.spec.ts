@@ -13,47 +13,92 @@ describe('tsAnalyzer', () => {
         analyzer = tsa.create(logger);
     });
 
-    describe('internal enum', () => {
-        let program: ts.Program 
-        
-        beforeEach(() => {
-            program = aProgram('./spec/resources/', 'stateWithEnum.ts');
+    describe('interfaces', () => {
+        describe('internal enum', () => {
+            let program: ts.Program
+
+            beforeEach(() => {
+                program = aProgram('./spec/resources/', 'stateWithEnum.ts');
+            });
+
+            it('has parsed data', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                expect(data.enums.length).toBe(1);
+            });
+
+            it('gets name', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                expect(data.enums.length).toBe(1);
+                expect(data.enums[0].name).toBe('SomeEnum');
+            });
+        })
+
+        describe('internal custom type', () => {
+            let program: ts.Program
+
+            beforeEach(() => {
+                program = aProgram('./spec/resources/', 'stateWithType.ts');
+            });
+
+            it('has parsed data', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                expect(data.customTypes.length).toBe(1);
+            });
+
+            it('gets name', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                expect(data.customTypes.length).toBe(1);
+                expect(data.customTypes[0].name).toBe('MyMap');
+            });
         });
-        
+    });
+
+    describe('classes', () => {
+        let program: ts.Program
+
+        beforeEach(() => {
+            program = aProgram('./spec/resources/', 'pointAndPosition.ts');
+        });
+
         it('has parsed data', () => {
             let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
-            expect(data.enums.length).toBe(1);
+            expect(data.states.length).toBe(3);
         });
 
-        it('gets name', () => {
+        it('gets nested type of field', () => {
             let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
-            expect(data.enums.length).toBe(1);
-            expect(data.enums[0].name).toBe('SomeEnum');
+            let point = getState(data, 'PointBaseDto');
+            expect(point.fields.map(f => f.name)).toEqual(['position']);
+            expect(point.fields.map(f => f.type)).toEqual(['PositionDto']);
+        });
+
+        it('gets name of fields in point', () => {
+            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+            let point = getState(data, 'PointDto');
+            expect(point.fields.map(f => f.name)).toEqual(['id']);
+        });
+
+        it('gets heitages', () => {
+            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+            let point = getState(data, 'PointDto');
+            expect(point.heritages).toEqual(['PointBaseDto']);
         });
     })
-    
-    describe('internal custom type', () => {
-        let program: ts.Program 
-        
-        beforeEach(() => {
-            program = aProgram('./spec/resources/', 'stateWithType.ts');
-        });
-        
-        it('has parsed data', () => {
-            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
-            expect(data.customTypes.length).toBe(1);
-        });
-
-        it('gets name', () => {
-            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
-
-            expect(data.customTypes.length).toBe(1);
-            expect(data.customTypes[0].name).toBe('MyMap');
-        });
-    })
+    function getState(data: tsa.IStateSourceData, name: string): tsa.IStateData {
+        let found = data.states.filter(s => s.typeName === name);
+        if (found.length === 0)
+            throw `No state ${name} could not be found.`;
+        return data.states.filter(s => s.typeName === name)[0];
+    }
 
     function aProgram(currentDirectory: string, fileName: string): ts.Program {
         return ts.createProgram([fileName], tsOptions, tsch.createCompilerHost(currentDirectory, logger));
