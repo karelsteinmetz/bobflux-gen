@@ -6,10 +6,11 @@ export interface INodeVisitor {
 }
 
 export interface IStateFieldData {
-    name: string
-    type: string
-    isState?: boolean
-    isArray?: boolean
+    name: string;
+    type: string;
+    isState?: boolean;
+    isArray?: boolean;
+    genericTypeName?: string;
 }
 
 export interface IStateData {
@@ -19,7 +20,7 @@ export interface IStateData {
     fields: IStateFieldData[];
     heritages: string[];
     source: StateSource;
-    genericTypeName?: string;
+    generics: string[];
 }
 
 export enum StateSource {

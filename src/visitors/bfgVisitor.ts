@@ -3,7 +3,7 @@ import * as nv from './nodeVisitor';
 import * as cv from './classDeclarationVisitor';
 import * as iv from './interfaceDeclarationVisitor';
 import * as pdv from './propertyDeclarationVisitor';
-import * as psv from './propertyDeclarationVisitor';
+import * as psv from './propertySignatureVisitor';
 
 export * from './nodeVisitor';
 
@@ -12,6 +12,10 @@ export function createAllBfgVisitors(saveCallback: () => nv.IStateSourceData) {
         cv.create((s) => { saveCallback().states.push(s); }),
         iv.create((s) => { saveCallback().states.push(s); }),
         pdv.create((f) => {
+            let data = saveCallback();
+            data.states[data.states.length - 1].fields.push(f);
+        }),
+        psv.create((f) => {
             let data = saveCallback();
             data.states[data.states.length - 1].fields.push(f);
         })

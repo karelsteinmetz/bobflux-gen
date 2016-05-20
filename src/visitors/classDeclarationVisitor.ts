@@ -7,14 +7,15 @@ export function create(saveCallback: (state: nv.IStateData) => void): nv.INodeVi
             return n.kind === ts.SyntaxKind.ClassDeclaration;
         },
         visit: (n: ts.Node) => {
-            let ce = <ts.ClassDeclaration>n;
+            let cd = <ts.ClassDeclaration>n;
             saveCallback({
-                typeName: ce.name.text,
-                type: ce.kind,
-                fileName: (<ts.SourceFile>ce.parent).fileName,
+                typeName: cd.name.text,
+                type: cd.kind,
+                fileName: (<ts.SourceFile>cd.parent).fileName,
                 fields: [],
-                heritages: ce.heritageClauses ? ce.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : [],
-                source: nv.StateSource.iface
+                heritages: cd.heritageClauses ? cd.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : [],
+                source: nv.StateSource.iface,
+                generics: cd.typeParameters && cd.typeParameters.map(tp => tp.getText())
             });
         }
     }

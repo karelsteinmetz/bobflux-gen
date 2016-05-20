@@ -89,22 +89,6 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                 else if (n.kind === ts.SyntaxKind.TypeReference) { //151
                     logger.debug('TypeReference: ', n);
                 }
-                else if (n.kind === ts.SyntaxKind.PropertySignature) { //140
-                    let ps = <ts.PropertySignature>n;
-                    logger.debug('PropertySignature: ', ps);
-                    if (ps.parent.kind === ts.SyntaxKind.InterfaceDeclaration) {
-                        let iface = result.states.filter(s => s.typeName === (<ts.InterfaceDeclaration>ps.parent).name.text)[0];
-                        logger.debug('PropertySignature ps.type: ', ps.type);
-                        if (ps.type.kind === ts.SyntaxKind.TypeReference)
-                            iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true })
-                        else if (ps.type.kind === ts.SyntaxKind.ArrayType)
-                            iface.fields.push({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true })
-                        else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)
-                            iface.fields.push({ name: ps.name.getText(), type: (<ts.TypeLiteralNode>ps.type).getText() })
-                        else
-                            iface.fields.push({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind) })
-                    }
-                }
                 ts.forEachChild(n, visit);
             }
             visit(source);
