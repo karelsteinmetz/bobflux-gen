@@ -8,8 +8,15 @@ export function create(saveCallback: (state: nv.IStateFieldData) => void): nv.IN
         },
         visit: (n: ts.Node) => {
             let p = <ts.PropertyDeclaration>n;
-            if (p.type.kind === ts.SyntaxKind.TypeReference)
-                saveCallback({ name: p.name.getText(), type: (<ts.TypeReferenceNode>p.type).typeName.getText(), isState: true });
+            if (p.type.kind === ts.SyntaxKind.TypeReference) {
+                let tp = (<ts.TypeReferenceNode>p.type);
+                saveCallback({
+                    name: p.name.getText(),
+                    type: tp.typeName.getText(),
+                    isState: true,
+                    typeArguments: tp.typeArguments && tp.typeArguments.map(tp => tp.getText())
+                });
+            }
             else if (p.type.kind === ts.SyntaxKind.ArrayType)
                 saveCallback({ name: p.name.getText(), type: (<ts.ArrayTypeNode>p.type).elementType.getText(), isArray: true });
             else if (p.type.kind === ts.SyntaxKind.TypeLiteral)

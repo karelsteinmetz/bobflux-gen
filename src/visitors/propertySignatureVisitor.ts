@@ -8,8 +8,15 @@ export function create(saveCallback: (state: nv.IStateFieldData) => void): nv.IN
         },
         visit: (n: ts.Node) => {
             let ps = <ts.PropertySignature>n;
-            if (ps.type.kind === ts.SyntaxKind.TypeReference)
-                saveCallback({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true });
+            if (ps.type.kind === ts.SyntaxKind.TypeReference) {
+                let tp = (<ts.TypeReferenceNode>ps.type);
+                saveCallback({
+                    name: ps.name.getText(),
+                    type: tp.typeName.getText(),
+                    isState: true,
+                    typeArguments: tp.typeArguments && tp.typeArguments.map(tp => tp.getText())
+                });
+            }
             else if (ps.type.kind === ts.SyntaxKind.ArrayType)
                 saveCallback({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true });
             else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)

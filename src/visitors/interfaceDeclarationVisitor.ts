@@ -15,7 +15,7 @@ export function create(saveCallback: (state: nv.IStateData) => void): nv.INodeVi
                 fields: [],
                 heritages: id.heritageClauses ? id.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : [],
                 source: nv.StateSource.cls,
-                generics: id.typeParameters && id.typeParameters.map(tp => tp.getText())
+                typeArguments: id.typeParameters && id.typeParameters.map(tp => tp.getText())
             });
         }
     }

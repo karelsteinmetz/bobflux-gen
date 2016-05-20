@@ -55,6 +55,34 @@ describe('tsAnalyzer', () => {
                 expect(data.customTypes[0].name).toBe('MyMap');
             });
         });
+
+        describe('generic state', () => {
+            let program: ts.Program
+
+            beforeEach(() => {
+                program = aProgram('./spec/resources/', 'stateWithGeneric.ts');
+            });
+
+            it('has parsed data', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                expect(data.states.length).toBe(2);
+            });
+
+            it('has generic declarations', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                expect(getState(data, 'IGenericState').typeArguments).toEqual(['T']);
+            });
+
+            it('field has declared generic type', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                let state = getState(data, 'IApplicationState');
+
+                expect(state.fields[0].typeArguments).toEqual(['string']);
+            });
+        });
     });
 
     describe('classes', () => {
@@ -64,32 +92,62 @@ describe('tsAnalyzer', () => {
             program = aProgram('./spec/resources/', 'pointAndPosition.ts');
         });
 
-        it('has parsed data', () => {
-            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+        describe('generic state', () => {
+            it('has parsed data', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
-            expect(data.states.length).toBe(3);
+                expect(data.states.length).toBe(3);
+            });
+
+            it('gets nested type of field', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                let point = getState(data, 'PointBaseDto');
+                expect(point.fields.map(f => f.name)).toEqual(['position']);
+                expect(point.fields.map(f => f.type)).toEqual(['PositionDto']);
+            });
+
+            it('gets name of fields in point', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                let point = getState(data, 'PointDto');
+                expect(point.fields.map(f => f.name)).toEqual(['id']);
+            });
+
+            it('gets heitages', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                let point = getState(data, 'PointDto');
+                expect(point.heritages).toEqual(['PointBaseDto']);
+            });
         });
 
-        it('gets nested type of field', () => {
-            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+        describe('generic state', () => {
+            let program: ts.Program
 
-            let point = getState(data, 'PointBaseDto');
-            expect(point.fields.map(f => f.name)).toEqual(['position']);
-            expect(point.fields.map(f => f.type)).toEqual(['PositionDto']);
-        });
+            beforeEach(() => {
+                program = aProgram('./spec/resources/', 'classWithGenericType.ts');
+            });
 
-        it('gets name of fields in point', () => {
-            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+            it('has parsed data', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
-            let point = getState(data, 'PointDto');
-            expect(point.fields.map(f => f.name)).toEqual(['id']);
-        });
+                expect(data.states.length).toBe(2);
+            });
 
-        it('gets heitages', () => {
-            let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+            it('has generic declarations', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
 
-            let point = getState(data, 'PointDto');
-            expect(point.heritages).toEqual(['PointBaseDto']);
+                expect(getState(data, 'GenericState').typeArguments).toEqual(['T']);
+            });
+
+            it('field has declared generic type', () => {
+                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+
+                let state = getState(data, 'ApplicationState');
+
+                expect(state.fields[0].typeArguments).toEqual(['string']);
+            });
         });
     })
 

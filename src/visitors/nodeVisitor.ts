@@ -10,7 +10,7 @@ export interface IStateFieldData {
     type: string;
     isState?: boolean;
     isArray?: boolean;
-    genericTypeName?: string;
+    typeArguments?: string[];
 }
 
 export interface IStateData {
@@ -20,7 +20,7 @@ export interface IStateData {
     fields: IStateFieldData[];
     heritages: string[];
     source: StateSource;
-    generics: string[];
+    typeArguments?: string[];
 }
 
 export enum StateSource {
