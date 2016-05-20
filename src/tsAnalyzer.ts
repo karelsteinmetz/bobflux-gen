@@ -70,25 +70,9 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                     currentImport.prefix = ni.name.getText();
                 }
 
-                if (n.kind === ts.SyntaxKind.InterfaceDeclaration) { //216
-                    let ce = <ts.InterfaceDeclaration>n;
-                    logger.debug('InterfaceDeclaration: ', ce);
-                    result.states.push({
-                        typeName: ce.name.text,
-                        type: ce.kind,
-                        fileName: (<ts.SourceFile>ce.parent).fileName,
-                        fields: [],
-                        heritages: ce.heritageClauses ? ce.heritageClauses.map(h => h.types.map(t => t.getText()).join(';')) : [],
-                        source: bv.StateSource.iface
-                    });
+                if (n.kind === ts.SyntaxKind.InterfaceDeclaration || n.kind === ts.SyntaxKind.ClassDeclaration) { //216, 215
                     if (currentImport) {
-                        result.imports.push(currentImport)
-                        currentImport = null;
-                    }
-                }
-                else if (n.kind === ts.SyntaxKind.ClassDeclaration) { //215
-                    if (currentImport) {
-                        result.imports.push(currentImport)
+                        result.imports.push(currentImport);
                         currentImport = null;
                     }
                 }

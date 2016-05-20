@@ -7,15 +7,15 @@ export function create(saveCallback: (state: nv.IStateFieldData) => void): nv.IN
             return n.kind === ts.SyntaxKind.PropertySignature;
         },
         visit: (n: ts.Node) => {
-            let p = <ts.PropertySignature>n;
-            if (p.type.kind === ts.SyntaxKind.TypeReference)
-                saveCallback({ name: p.name.getText(), type: (<ts.TypeReferenceNode>p.type).typeName.getText(), isState: true });
-            else if (p.type.kind === ts.SyntaxKind.ArrayType)
-                saveCallback({ name: p.name.getText(), type: (<ts.ArrayTypeNode>p.type).elementType.getText(), isArray: true });
-            else if (p.type.kind === ts.SyntaxKind.TypeLiteral)
-                saveCallback({ name: p.name.getText(), type: (<ts.TypeLiteralNode>p.type).getText() });
+            let ps = <ts.PropertySignature>n;
+            if (ps.type.kind === ts.SyntaxKind.TypeReference)
+                saveCallback({ name: ps.name.getText(), type: (<ts.TypeReferenceNode>ps.type).typeName.getText(), isState: true });
+            else if (ps.type.kind === ts.SyntaxKind.ArrayType)
+                saveCallback({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true });
+            else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)
+                saveCallback({ name: ps.name.getText(), type: (<ts.TypeLiteralNode>ps.type).getText() });
             else
-                saveCallback({ name: p.name.getText(), type: ts.tokenToString(p.type.kind) });
+                saveCallback({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind) });
         }
     }
 }

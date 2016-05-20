@@ -10,6 +10,7 @@ export * from './nodeVisitor';
 export function createAllBfgVisitors(saveCallback: () => nv.IStateSourceData) {
     return createBfgVisitor(
         cv.create((s) => { saveCallback().states.push(s); }),
+        iv.create((s) => { saveCallback().states.push(s); }),
         pdv.create((f) => {
             let data = saveCallback();
             data.states[data.states.length - 1].fields.push(f);
