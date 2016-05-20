@@ -76,11 +76,6 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                         currentImport = null;
                     }
                 }
-                else if (n.kind === ts.SyntaxKind.EnumDeclaration) { //218
-                    let en = <ts.EnumDeclaration>n;
-                    logger.debug('EnumDeclaration: ', en);
-                    result.enums.push({ name: en.name.getText() });
-                }
                 else if (n.kind === ts.SyntaxKind.TypeAliasDeclaration) { //218
                     let tad = <ts.TypeAliasDeclaration>n;
                     logger.debug('TypeAliasDeclaration: ', tad);

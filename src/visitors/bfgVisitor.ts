@@ -4,18 +4,20 @@ import * as cv from './classDeclarationVisitor';
 import * as iv from './interfaceDeclarationVisitor';
 import * as pdv from './propertyDeclarationVisitor';
 import * as psv from './propertySignatureVisitor';
+import * as edv from './enumDeclarationVisitor';
 
 export * from './nodeVisitor';
 
 export function createAllBfgVisitors(saveCallback: () => nv.IStateSourceData) {
     return createBfgVisitor(
-        cv.create((s) => { saveCallback().states.push(s); }),
-        iv.create((s) => { saveCallback().states.push(s); }),
-        pdv.create((f) => {
+        edv.create(e => saveCallback().enums.push(e)),
+        cv.create(s => saveCallback().states.push(s)),
+        iv.create(s => saveCallback().states.push(s)),
+        pdv.create(f => {
             let data = saveCallback();
             data.states[data.states.length - 1].fields.push(f);
         }),
-        psv.create((f) => {
+        psv.create(f => {
             let data = saveCallback();
             data.states[data.states.length - 1].fields.push(f);
         })

@@ -38,6 +38,7 @@
         "./src/visitors/bfgVisitor.ts",
         "./src/visitors/nodeVisitor.ts",
         "./src/visitors/classDeclarationVisitor.ts",
+        "./src/visitors/enumDeclarationVisitor.ts",
         "./src/visitors/interfaceDeclarationVisitor.ts",
         "./src/visitors/propertyDeclarationVisitor.ts",
         "./src/visitors/propertySignatureVisitor.ts",
