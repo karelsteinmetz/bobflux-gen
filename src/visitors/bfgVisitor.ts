@@ -5,12 +5,14 @@ import * as iv from './interfaceDeclarationVisitor';
 import * as pdv from './propertyDeclarationVisitor';
 import * as psv from './propertySignatureVisitor';
 import * as edv from './enumDeclarationVisitor';
+import * as tadv from './typeAliasDeclarationVisitor';
 
 export * from './nodeVisitor';
 
 export function createAllBfgVisitors(saveCallback: () => nv.IStateSourceData) {
     return createBfgVisitor(
         edv.create(e => saveCallback().enums.push(e)),
+        tadv.create(t => saveCallback().customTypes.push(t)),
         cv.create(s => saveCallback().states.push(s)),
         iv.create(s => saveCallback().states.push(s)),
         pdv.create(f => {

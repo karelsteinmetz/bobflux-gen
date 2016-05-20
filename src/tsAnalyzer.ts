@@ -76,11 +76,6 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
                         currentImport = null;
                     }
                 }
-                else if (n.kind === ts.SyntaxKind.TypeAliasDeclaration) { //218
-                    let tad = <ts.TypeAliasDeclaration>n;
-                    logger.debug('TypeAliasDeclaration: ', tad);
-                    result.customTypes.push({ name: tad.name.getText() });
-                }
                 else if (n.kind === ts.SyntaxKind.TypeReference) { //151
                     logger.debug('TypeReference: ', n);
                 }
