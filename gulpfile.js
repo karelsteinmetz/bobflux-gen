@@ -1,5 +1,4 @@
 var gulp = require('gulp');
-var fs = require('graceful-fs');
 var typeScriptCompile = require('./tscomp.js');
 var through2 = require('through2');
 var jasmine = require('gulp-jasmine');
