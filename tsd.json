@@ -13,6 +13,9 @@
     },
     "jasmine/jasmine.d.ts": {
       "commit": "70bf7e2bfeb0d5b1b651ef3219bcc65c8eec117e"
+    },
+    "xml2js/xml2js.d.ts": {
+      "commit": "91d45c49a3b5cd6a0abbf5f319c1406fd4f2b1e7"
     }
   }
 }
