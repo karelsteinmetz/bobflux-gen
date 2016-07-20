@@ -1,103 +1,79 @@
 import * as log from '../logger';
 import * as url from 'url';
 import * as http from 'http';
-import * as xml2js from 'xml2js';
+import * as odataSchema from './odataSchema';
+import * as t from './templates';
+import * as typeConvertor from './odataTypeConvertor';
+import * as ts from 'typescript';
 
 export interface IOdataApiGenerator {
     run: (odataMetadataUrl: string) => void;
 }
 
-export function create(logger: log.ILogger): IOdataApiGenerator {
+const indentSpaces = '    ';
+const moduleName = 'Some.Models';
+const apiServiceAlias = 'a';
+const apiServiceModuleName = 'axios';
+
+export function create(logger: log.ILogger, writeCallback: (b: Buffer) => void): IOdataApiGenerator {
     return {
         run: (odataMetadataUrl) => {
-            downloadMetadata(odataMetadataUrl)
+            let parsedUrl = url.parse(odataMetadataUrl);
+            downloadMetadata(parsedUrl)
                 .then(xml => {
-                    logger.debug("Downloaded xml:");
+                    logger.debug('Downloaded xml:');
                     logger.debug(xml);
-
-                    convertXmlToObject(xml)
+                    odataSchema.fromXml(xml)
                         .then(obj => {
-                            logger.debug("Xml converted to object:");
-
-                            logger.debug("test");
-
-                            logger.debug(obj.edmxEdmx.$.Version);
-
-                            logger.debug(JSON.stringify(obj));
-                        })
-                });
+                            logger.debug('Xml converted to object:');
+                            obj.edmxEdmx.edmxDataServices.forEach(ds => {
+                                writeCallback(new Buffer(
+                                    [
+                                        t.apiServiceToString(apiServiceAlias, apiServiceModuleName),
+                                        t.moduleToString('', {
+                                            name: moduleName,
+                                            content: createContent(ds, parsedUrl.path.replace('$metadata', ''), apiServiceAlias, moduleName)
+                                        })
+                                    ].join(''),
+                                    'utf-8'))
+                            })
+                        });
+                })
         }
     }
 }
 
-interface IOdata {
-    edmxEdmx: IOdataEdmx;
+function createContent(ds: odataSchema.IOdataDataService, apiPath: string, apiServiceAlias: string, moduleName: string) {
+    return ds.Schema.map(sch => {
+        return odataSchema.isIOdataEntityTypeSchema(sch)
+            ? sch.EntityType.map(e => {
+                return t.interfaceToString(indentSpaces, {
+                    name: e.$.Name,
+                    isExported: true,
+                    properties: e.Property.map(p => <t.IInterfacePropertyDefinition>{
+                        name: p.$.Name,
+                        valueName: ts.tokenToString(typeConvertor.EdmInt32ToTs(p.$.Type))
+                    })
+                });
+            }).join('')
+            : odataSchema.isIOdataEntitySetSchema(sch)
+                ? t.apiGetResponse(indentSpaces) + sch.EntityContainer
+                    .map(ec => ec.EntitySet
+                        .map(e => {
+                            return t.apiGet(indentSpaces, {
+                                apiServiceAlias,
+                                apiPrefix: apiPath,
+                                entitySet: e.$.Name,
+                                entityTypeName: e.$.EntityType.replace(moduleName + '.', '')
+                            })
+                        }).join('')
+                    ).join('')
+                : ''
+    }).join('');
 }
 
-interface IOdataEdmx {
-    $: IOdataXmlns;
-    edmxDataServices: IOdataDataService[];
-}
-
-interface IOdataXmlns {
-    Version: string;
-    xmlnsEdmx: string;
-}
-
-interface IOdataDataService {
-    Schema: IOdataSchema[];
-}
-
-interface IOdataSchema {
-    $: { Namespace: string, xmlns: string };
-    EntityType: IOdataEntityType[];
-}
-
-interface IOdataEntityType {
-    $: { Name: string };
-    Key: IOdataEntityTypeKey[];
-    Property: IOdataEntityTypeProperty[];
-}
-
-interface IOdataEntityTypeKey {
-    PropertyRef: { $: { Name: string } };
-}
-
-interface IOdataEntityTypeProperty {
-    $: IOdataEntityTypePropertyItem;
-}
-
-interface IOdataEntityTypePropertyItem {
-    Name: string,
-    Type: string,
-    Nullable?: string
-}
-
-function sanitizeName(name) {
-    return name.replace(":", "");
-}
-
-function convertXmlToObject(xml: string): Promise<IOdata> {
-    return new Promise<IOdata>((f, r) => {
-        let p = new xml2js.Parser({
-            tagNameProcessors: [sanitizeName],
-            attrNameProcessors: [sanitizeName],
-            // valueProcessors: [sanitizeName],
-            // attrValueProcessors: [sanitizeName]
-        });
-        p.parseString(xml, (err, result) => {
-            if (err)
-                r();
-            else
-                f(result);
-        }
-        );
-    });
-}
-
-function downloadMetadata(odataMetadataUrl: string): Promise<string> {
+function downloadMetadata(parsedUrl: url.Url): Promise<string> {
     return new Promise<string>((f, r) => {
-        let parsedUrl = url.parse(odataMetadataUrl);
         let options = {
             host: parsedUrl.hostname,
             path: parsedUrl.path,
