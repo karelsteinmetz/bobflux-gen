@@ -26,7 +26,7 @@ export function run(version: string) {
             logger.info('Odata api generator started');
             let targetFile = o.targetFile || 'odataAxiosApi.ts';
             odataGenerator
-                .create(logger, (b: Buffer) => {
+                .create(logger, version, (b: Buffer) => {
                     logger.info("Writing started into " + targetFile);
                     mkpathsync(path.dirname(targetFile));
                     fs.writeFileSync(targetFile, b);
