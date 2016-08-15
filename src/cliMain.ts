@@ -2,6 +2,7 @@ import * as c from 'commander';
 import * as ts from 'typescript';
 import * as g from './generator';
 import * as cg from './cursorsGenerator';
+import * as fcg from './funCursorsGenerator';
 import * as bg from './buildersGenrator';
 import * as tsa from './tsAnalyzer';
 import * as log from  './logger';
@@ -35,6 +36,34 @@ export function run(version: string) {
             }
             else
                 cg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
+                    .run()
+                    .then(r => logger.info('Cursors generator finished'))
+                    .catch(e => logger.error('Cursors generator finished with errors: ', e));
+        });
+    c
+        .command("funCursors")
+        .alias("fc")
+        .description("generates functional cursors for each state")
+        .option("-p, --appStatePath <appStatePath>", "defines pattren for state files search (default is ./state.ts)")
+        .option("-n, --appStateName <appStateName>", "defines root name of Application state (default is IApplicationState)")
+        .option("-k, --parentStateKey <parentStateKey>", "defines key of parent state, it's suitable for nested states (default is empty)")
+        .option("-r, --recursively <1/0>", "enables recursively generation for nested states", /^(true|false|1|0|t|f|y|n)$/i, "0")
+        .option("-d, --debug <1/0>", "enables logging in debug level", /^(true|false|1|0|t|f|y|n)$/i, "0")
+        .action((o) => {
+            let logger = humanTrue(o.debug)
+                ? log.create(true, true, true, true)
+                : log.create()
+            if (o.parentStateKey)
+                logger.info(`Parent state cursor key '${o.parentStateKey}' has been set`);
+            logger.info('Functional cursors generator started');
+            if (humanTrue(o.recursively)) {
+                logger.info('Recurse generation has been set');
+                fcg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
+                    .runRecurse()
+                    .then(r => logger.info('Functional cursors generator finished'))
+            }
+            else
+                fcg.default(createProjectFromDir(version, logger, currentDirectory(), o.appStatePath, o.appStateName), tsa.create(logger), logger, o.parentStateKey)
                     .run()
                     .then(r => logger.info('Cursors generator finished'))
                     .catch(e => logger.error('Cursors generator finished with errors: ', e));
