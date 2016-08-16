@@ -67,7 +67,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             if (states.length > 0)
                 fieldType = `${stateAlias}.${fieldType}`;
             if (f.isArray)
-                return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
+                return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, `${stateAlias}.${state.typeName}`);
             if (states.length > 0)
                 nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
@@ -76,7 +76,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 fieldType = `${stateAlias}.${fieldType}`;
             if (g.isCustomType(fieldType, data.customTypes))
                 fieldType = `${stateAlias}.${fieldType}`;
-            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
+            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, `${stateAlias}.${state.typeName}`);
         }).join('\n');
         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
     }
@@ -94,20 +94,17 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
     })
 }
 
-function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, withRoot: boolean): string {
-    return `export const ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}Cursor: ${bobfluxPrefix}.ICursor<${typeName}> = {
-    key: ${withRoot ? `rootKey + '.${key}'` : `'${key}'`}
-};
+function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
+    return `export function ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}(cursor: f.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
+    return { key: cursor.key + '.${key}' };
+}
 `;
 }
 
-function createArrayIndexFactoryCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, withRoot: boolean): string {
-    return `
-export const ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}IndexFactoryCursor: (index: number) => ${bobfluxPrefix}.IIndexCursorReslut = (index: number) => {
-    return {
-        cursor: <${bobfluxPrefix}.ICursor<${typeName}>>{ key: ${withRoot ? `rootKey + '.${key}.'` : `'${key}.'`} + index }
-    };
-};
+function createArrayIndexFactoryCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
+    return `export function ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}(cursor: f.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
+    return { key: cursor.key + '.${key}' };
+}
 `;
 }
 
