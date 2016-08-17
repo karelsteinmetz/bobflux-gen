@@ -4,6 +4,7 @@ import * as g from './generator';
 import * as cg from './cursorsGenerator';
 import * as fcg from './funCursorsGenerator';
 import * as bg from './buildersGenrator';
+import * as odataGenerator from './odata/odata';
 import * as tsa from './tsAnalyzer';
 import * as log from  './logger';
 import * as fs from 'fs';
@@ -12,6 +13,29 @@ import * as pathPlatformDependent from 'path';
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
 export function run(version: string) {
+    c
+        .command("odata")
+        .alias("o")
+        .description("generates odata api in typescript")
+        .option("-u, --metadataUlr <metadataUlr>", "defines odata metadata url")
+        .option("-f, --targetFile <targetFile>", "defines target file where will be odata api generated")
+        .option("-d, --debug <1/0>", "enables logging in debug level", /^(true|false|1|0|t|f|y|n)$/i, "0")
+        .action(o => {
+            let logger = humanTrue(o.debug)
+                ? log.create(true, true, true, true)
+                : log.create()
+            logger.info('Odata api generator started');
+            let targetFile = o.targetFile || 'odataAxiosApi.ts';
+            odataGenerator
+                .create(logger, version, (b: Buffer) => {
+                    logger.info("Writing started into " + targetFile);
+                    mkpathsync(path.dirname(targetFile));
+                    fs.writeFileSync(targetFile, b);
+                    logger.info("Writing finished");
+                })
+                .run(o.metadataUlr);
+            logger.info('Cursors generator finished');
+        });
     c
         .command("cursors")
         .alias("c")

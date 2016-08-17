@@ -16,10 +16,7 @@
         "./src/*.ts",
         "./spec/*.ts",
         "!./node_modules/**/*",
-        "./node_modules/typescript/lib/typescript.d.ts",
-        "./typings/node/**/*.d.ts",
-        "./typings/jasmine/jasmine.d.ts",
-        "./typings/commander/commander.d.ts"
+        "./node_modules/typescript/lib/typescript.d.ts"
     ],
     "files": [
         "./examples/cursors.ts",
@@ -43,6 +40,10 @@
         "./src/visitors/interfaceDeclarationVisitor.ts",
         "./src/visitors/propertyDeclarationVisitor.ts",
         "./src/visitors/propertySignatureVisitor.ts",
+        "./src/odata/odata.ts",
+        "./src/odata/templates.ts",
+        "./src/odata/odataSchema.ts",
+        "./src/odata/odataTypeConvertor.ts",
         "./spec/buildersGenrator.spec.ts",
         "./spec/cursorsGenerator.spec.ts",
         "./spec/funCursorsGenerator.spec.ts",
@@ -51,8 +52,6 @@
         "./spec/pathUtils.spec.ts",
         "./spec/tsAnalyzer.spec.ts",
         "./node_modules/typescript/lib/typescript.d.ts",
-        "./typings/node/node.d.ts",
-        "./typings/jasmine/jasmine.d.ts",
-        "./typings/commander/commander.d.ts"
+        "./typings/tsd.d.ts"
     ]
 }

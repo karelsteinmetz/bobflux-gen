@@ -1,1 +1,1 @@
-node bin/bfg c --appStatePath c:/dev-github/bobflux-gen/spec/resources/stateWithArray.ts
+node bin/bfg c --metadataUlr "http://localhost:8097/eomApi/odata/$metadata"
