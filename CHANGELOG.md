@@ -1,6 +1,15 @@
 CHANGELOG
 ===
 
+0.10.0
+New Features
+-
+
+Functional cursors.
+* are being created for each IComponentState
+* will help you when you create isolated Bobflux components which have instance of actions in own context
+* are pure functions which have base state as parameter
+
 0.9.0
 New Features
 -
