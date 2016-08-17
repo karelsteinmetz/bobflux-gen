@@ -67,7 +67,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             if (states.length > 0)
                 fieldType = `${stateAlias}.${fieldType}`;
             if (f.isArray)
-                return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, `${stateAlias}.${state.typeName}`);
+                return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, `${stateAlias}.${state.typeName}`);
             if (states.length > 0)
                 nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
@@ -76,7 +76,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 fieldType = `${stateAlias}.${fieldType}`;
             if (g.isCustomType(fieldType, data.customTypes))
                 fieldType = `${stateAlias}.${fieldType}`;
-            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, `${stateAlias}.${state.typeName}`);
+            return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, `${stateAlias}.${state.typeName}`);
         }).join('\n');
         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
     }
@@ -94,19 +94,23 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
     })
 }
 
-function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
-    return `export function ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}(cursor: f.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
+function createFieldCursor(prefix: string, key: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
+    return `export function ${prefix === null ? key : nameUnifier.getStatePrefixFromKeyPrefix(prefix, key)}(cursor: f.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
     return { key: cursor.key + '.${key}' };
 }
 `;
 }
 
 function createArrayIndexFactoryCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
-    return `export function ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}(cursor: f.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
+    return `export function ${prefix === null ? key : nameUnifier.getStatePrefixFromKeyPrefix(prefix, key)}(cursor: f.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
     return { key: cursor.key + '.${key}' };
 }
 `;
 }
+
+// export function currentMonthEmployeeMonths(cursor: f.ICursor<s.IEmployeesPageState>, index: number): f.ICursor<s.IEmployeeMonth> {
+//     return { key: cursor.key + ".currentMonth.employeeMonths." + index };
+// }
 
 export function createCursorsFilePath(stateFilePath: string): string {
     return `${path.join(path.dirname(stateFilePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.f.cursors.ts`;
