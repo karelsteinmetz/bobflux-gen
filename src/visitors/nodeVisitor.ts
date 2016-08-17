@@ -53,3 +53,5 @@ export interface IStateSourceData {
     customTypes: ICustomTypeData[],
     fluxImportAlias: string
 }
+
+export function flatten<T>(array: T[][]): T[] { return [].concat(...array); }
