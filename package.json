@@ -1,6 +1,6 @@
 {
   "name": "bobflux-gen",
-  "version": "0.10.0",
+  "version": "0.10.1",
   "description": "Generator for monkey files in bobflux application.",
   "main": "index.js",
   "repository": {
@@ -8,18 +8,20 @@
     "url": "https://github.com/karelsteinmetz/bobflux-gen.git"
   },
   "keywords": [
-    "bobflux"
+    "bobflux",
+    "fun-model",
+    "bobril"
   ],
   "bin": {
     "bfg": "./bin/bfg"
   },
   "dependencies": {
-    "bobflux": "*",
     "commander": "^2.9.0",
     "typescript": "1.8.0",
     "xml2js": "^0.4.17"
   },
   "devDependencies": {
+    "bobflux": "*",
     "graceful-fs": "^4.1.4",
     "gulp": "^3.9.0",
     "gulp-bump": "^1.0.0",
