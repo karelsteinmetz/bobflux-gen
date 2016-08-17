@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as pathPlatformDependent from 'path';
 const path = pathPlatformDependent.posix;
 
-fdescribe('funCursorsGenerator', () => {
+describe('funCursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
@@ -35,6 +35,19 @@ fdescribe('funCursorsGenerator', () => {
                     done();
                 });
         });
+
+        it('generates imports', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as s from './stateTodos';
+import * as f from './flux';
+`);
+                    done();
+                })
+                .catch(e => { expect(e).toBeUndefined(); done(); });
+        });
+        
     });
 
     describe('createCursorFilePath', () => {
@@ -42,7 +55,7 @@ fdescribe('funCursorsGenerator', () => {
             expect(g.createCursorsFilePath('c:/app/state.ts'))
                 .toBe('c:/app/state.f.cursors.ts');
         });
-    })
+    });
 
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void, version: string = 'AVersion'): gb.IGenerationProject {
         return {
