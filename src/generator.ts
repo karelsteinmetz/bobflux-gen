@@ -119,11 +119,11 @@ export function isCustomType(fieldType: string, customeTypes: tsa.ICustomTypeDat
 }
 
 export function isRouteComponentState(...heritages: string[]): boolean {
-    return heritages.filter(h => h.indexOf('.IRouteComponentState') !== -1).length > 0;
+    return heritages.filter(h => h.indexOf('IRouteComponentState') !== -1).length > 0;
 }
 
 export function isComponentState(...heritages: string[]): boolean {
-    return heritages.filter(h => h.indexOf('.IComponentState') !== -1).length > 0;
+    return heritages.filter(h => h.indexOf('IComponentState') !== -1).length > 0;
 }
 
 export function findImportAlias(imports: tsa.IImportData[], prefix: string): tsa.IImportData {
