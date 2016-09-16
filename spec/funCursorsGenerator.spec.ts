@@ -80,8 +80,8 @@ export function todoSectionTodoSectionTodos(cursor: f.ICursor<s.IApplicationStat
                 .do()
                 .then(text => {
                     expect(text).toContain(`
-export function todoSectionTodoSectionTodos(cursor: f.ICursor<s.IApplicationState>, index: number): f.ICursor<s.ITodo[]> {
-    return { key: cursor.key + '.todoSection.todos' + index };
+export function todoSectionTodoSectionTodosItem(cursor: f.ICursor<s.IApplicationState>, index: number): f.ICursor<s.ITodo> {
+    return { key: cursor.key + '.todoSection.todos.' + index };
 }
 `);
                     done();
