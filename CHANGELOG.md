@@ -1,6 +1,12 @@
 CHANGELOG
 ===
 
+0.12.0
+New Features
+-
+
+Added index as optional parameter in functional cursors of array.
+
 0.11.0
 New Features
 -

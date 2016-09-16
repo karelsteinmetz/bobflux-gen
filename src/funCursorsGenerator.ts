@@ -64,7 +64,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             if (states.length > 0)
                 fieldType = `${stateAlias}.${fieldType}`;
             if (f.isArray)
-                return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName);
+                return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName)
+                    + createIndexedFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName)
             if (states.length > 0)
                 nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
@@ -98,16 +99,12 @@ function createFieldCursor(prefix: string, key: string, bobfluxPrefix: string, t
 `;
 }
 
-function createArrayIndexFactoryCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
-    return `export function ${prefix === null ? key : nameUnifier.getStatePrefixFromKeyPrefix(prefix, key)}(cursor: ${bobfluxPrefix}.ICursor<${baseStateTypeName}>): ${bobfluxPrefix}.ICursor<${typeName}> {
-    return { key: cursor.key + '.${key}' };
+function createIndexedFieldCursor(prefix: string, key: string, bobfluxPrefix: string, typeName: string, baseStateTypeName: string): string {
+    return `export function ${prefix === null ? key : nameUnifier.getStatePrefixFromKeyPrefix(prefix, nameUnifier.getStatePrefixFromKeyPrefix(key, ""))}(cursor: ${bobfluxPrefix}.ICursor<${baseStateTypeName}>, index: number): ${bobfluxPrefix}.ICursor<${typeName}> {
+    return { key: cursor.key + '.${key}' + index };
 }
 `;
 }
-
-// export function currentMonthEmployeeMonths(cursor: f.ICursor<s.IEmployeesPageState>, index: number): f.ICursor<s.IEmployeeMonth> {
-//     return { key: cursor.key + ".currentMonth.employeeMonths." + index };
-// }
 
 export function createCursorsFilePath(stateFilePath: string): string {
     return `${path.join(path.dirname(stateFilePath), path.basename(stateFilePath).replace(path.extname(stateFilePath), ''))}.f.cursors.ts`;

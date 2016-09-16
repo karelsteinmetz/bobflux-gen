@@ -35,6 +35,19 @@ describe('funCursorsGenerator', () => {
                     done();
                 });
         });
+    });
+
+    describe('todos', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', './stateTodos.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateTodos') !== -1)
+                            f(b.toString('utf8'));
+                    }, '0.5.3'), tsa.create(logger), logger).run();
+                })
+            };
+        });
 
         it('generates imports', (done) => {
             testCase
@@ -47,7 +60,34 @@ import * as f from './flux';
                 })
                 .catch(e => { expect(e).toBeUndefined(); done(); });
         });
-        
+
+        it('generates cursor for array', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export function todoSectionTodoSectionTodos(cursor: f.ICursor<s.IApplicationState>): f.ICursor<s.ITodo[]> {
+    return { key: cursor.key + '.todoSection.todos' };
+}
+`);
+                    done();
+                })
+                .catch(e => { expect(e).toBeUndefined(); done(); });
+        });
+
+        it('generates cursor for item in array', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export function todoSectionTodoSectionTodos(cursor: f.ICursor<s.IApplicationState>, index: number): f.ICursor<s.ITodo[]> {
+    return { key: cursor.key + '.todoSection.todos' + index };
+}
+`);
+                    done();
+                })
+                .catch(e => { expect(e).toBeUndefined(); done(); });
+        });
     });
 
     describe('createCursorFilePath', () => {
