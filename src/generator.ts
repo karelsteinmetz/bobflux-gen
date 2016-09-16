@@ -91,6 +91,8 @@ export function createFullImports(stateAlias: string, stateFilePath: string, imp
     return `import * as ${stateAlias} from '${stateFilePath}';
 ${createImports(imports)}
 
+export * from '${stateFilePath}';
+
 `;
 }
 

@@ -22,7 +22,7 @@ describe('buildersGenrator', () => {
                 })
             };
         });
-                
+
         it('adds note', (done) => {
             testCase
                 .do()
@@ -36,6 +36,30 @@ describe('buildersGenrator', () => {
                 });
         });
     });
+
+    describe('state file', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('/tests/stateWithInner.builders.ts') !== -1)
+                            f(b.toString('utf8'));
+                    }, '../../tests/'), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        });
+
+        it('is reexported', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export * from '../spec/resources/stateWithInner';
+`);
+                    done();
+                });
+        });
+    })
 
     describe('buildToStore', () => {
         describe('without parent state key', () => {

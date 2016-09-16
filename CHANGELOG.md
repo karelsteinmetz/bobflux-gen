@@ -1,6 +1,13 @@
 CHANGELOG
 ===
 
+0.11.0
+New Features
+-
+
+Created state reexporting in all cursors and builders.
+* eliminates batch of imports in your tests
+
 0.10.0
 New Features
 -
