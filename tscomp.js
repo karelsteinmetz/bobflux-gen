@@ -9,8 +9,8 @@ var fc = Object.create(null);
 
 function getFileFromCache(fileName) {
 	var fci = fc[fileName];
-	if (fci!==undefined) {
-		if (fci.mtime==fs.statSync(fileName).mtime.getTime())
+	if (fci !== undefined) {
+		if (fci.mtime == fs.statSync(fileName).mtime.getTime())
 			return fci;
 	}
 	var mtime = fs.statSync(fileName).mtime.getTime();
@@ -19,8 +19,8 @@ function getFileFromCache(fileName) {
 	var re = /\/\/\/ +<reference +path *= *"(.*?)" *\/>/g;
 	var res;
 	var refs = [];
-	while( res = re.exec(text) ) {
-       refs.push(path.join(path.dirname(fileName),res[1]));
+	while (res = re.exec(text)) {
+		refs.push(path.join(path.dirname(fileName), res[1]));
 	}
 	fci = { content: text, mtime: mtime, refs: refs };
 	fc[fileName] = fci;
@@ -29,11 +29,10 @@ function getFileFromCache(fileName) {
 
 function latestTime(fileNames) {
 	var res = 0;
-    for(var i=0;i<fileNames.length;i++)
-	{
+	for (var i = 0; i < fileNames.length; i++) {
 		var fci = getFileFromCache(fileNames[i]);
-		res = Math.max(res,fci.mtime);
-		res = Math.max(res,latestTime(fci.refs));
+		res = Math.max(res, fci.mtime);
+		res = Math.max(res, latestTime(fci.refs));
 	}
 	return res;
 }
@@ -43,7 +42,7 @@ function createCompilerHost(currentDirectory) {
 		return ts.sys.useCaseSensitiveFileNames ? fileName : fileName.toLowerCase();
 	}
 	function getSourceFile(filename, languageVersion, onError) {
-		if (filename===defaultLibFilename && languageVersion===lastLibVersion) {
+		if (filename === defaultLibFilename && languageVersion === lastLibVersion) {
 			return lastLibPrecompiled;
 		}
 		try {
@@ -54,9 +53,9 @@ function createCompilerHost(currentDirectory) {
 			}
 			text = "";
 		}
-		if (filename===defaultLibFilename) {
-			lastLibVersion=languageVersion;
-			lastLibPrecompiled=ts.createSourceFile(filename, text, languageVersion, true);
+		if (filename === defaultLibFilename) {
+			lastLibVersion = languageVersion;
+			lastLibPrecompiled = ts.createSourceFile(filename, text, languageVersion, true);
 			return lastLibPrecompiled;
 		}
 		return ts.createSourceFile(filename, text, languageVersion, true);
@@ -67,8 +66,8 @@ function createCompilerHost(currentDirectory) {
 		} catch (e) {
 			text = "";
 		}
-		if (text===data) {
-			fs.utimesSync(fileName,new Date(),new Date());
+		if (text === data) {
+			fs.utimesSync(fileName, new Date(), new Date());
 			return;
 		}
 		try {
@@ -88,7 +87,7 @@ function createCompilerHost(currentDirectory) {
 		useCaseSensitiveFileNames: function () { return ts.sys.useCaseSensitiveFileNames; },
 		getCanonicalFileName: getCanonicalFileName,
 		getNewLine: function () { return '\n'; },
-        fileExists: function(fileName) {
+		fileExists: function (fileName) {
 			try {
 				getFileFromCache(fileName);
 				return true;
@@ -96,9 +95,9 @@ function createCompilerHost(currentDirectory) {
 			}
 			return false;
 		},
-        readFile: function(fileName) {
+		readFile: function (fileName) {
 			return getFileFromCache(fileName).content;
-		}	
+		}
 	};
 }
 
@@ -106,7 +105,7 @@ function reportDiagnostic(diagnostic) {
 	var output = "";
 	if (diagnostic.file) {
 		var loc = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
-		output += diagnostic.file.fileName + "(" + (loc.line+1) + "," + (loc.character+1) + "): ";
+		output += diagnostic.file.fileName + "(" + (loc.line + 1) + "," + (loc.character + 1) + "): ";
 	}
 	var category = ts.DiagnosticCategory[diagnostic.category].toLowerCase();
 	output += category + " TS" + diagnostic.code + ": " + ts.flattenDiagnosticMessageText(diagnostic.messageText, ts.sys.newLine) + ts.sys.newLine;
@@ -124,32 +123,31 @@ function typeScriptCompile(tsconfig, rebuild) {
 	var curDir = ts.sys.getCurrentDirectory();
 	if (!path.isAbsolute(tsconfig)) tsconfig = path.join(curDir, tsconfig);
 	curDir = path.dirname(tsconfig);
-	var tsconfigjson = ts.readConfigFile(tsconfig,function(fn) { return ts.sys.readFile(fn, 'utf-8') })['config'];
-	tsconfigjson["compilerOptions"]["moduleResolution"]="node";
-	tsconfigjson["compilerOptions"]["target"]="es5";
-	tsconfigjson["compilerOptions"]["module"]="commonjs";
-	var tscmd = ts.parseJsonConfigFileContent(tsconfigjson, null, curDir);
+	var tsconfigjson = ts.readConfigFile(tsconfig, function (fn) { return ts.sys.readFile(fn, 'utf-8') })['config'];
+	tsconfigjson["compilerOptions"]["moduleResolution"] = "node";
+	tsconfigjson["compilerOptions"]["target"] = "es5";
+	tsconfigjson["compilerOptions"]["module"] = "commonjs";
+	var tscmd = ts.parseJsonConfigFileContent(tsconfigjson, ts.createCompilerHost({}), curDir);
 	if (tscmd.errors.length) {
 		reportDiagnostics(tscmd.errors);
 		return 1;
 	}
 	var fileNames = tscmd.fileNames;
-	if (!Array.isArray(fileNames)) fileNames=[fileNames];
+	if (!Array.isArray(fileNames)) fileNames = [fileNames];
 
 	var outtime = 1e306;
-	for(var i = 0; i < fileNames.length; i++)
-	{
-		var fn=fileNames[i];
-		if (fn.substr(fn.length-5,5)===".d.ts")
+	for (var i = 0; i < fileNames.length; i++) {
+		var fn = fileNames[i];
+		if (fn.substr(fn.length - 5, 5) === ".d.ts")
 			continue;
-		var outputName = fn.substr(0,fn.length-3)+".js";
+		var outputName = fn.substr(0, fn.length - 3) + ".js";
 		try {
 			outtime = Math.min(outtime, fs.statSync(outputName).mtime.getTime());
 		}
 		catch (e) { console.log(e); outtime = 0; }
 		if (tscmd.options.sourceMap) {
 			try {
-				outtime = Math.min(outtime, fs.statSync(outputName+".map").mtime.getTime());
+				outtime = Math.min(outtime, fs.statSync(outputName + ".map").mtime.getTime());
 			}
 			catch (e) { console.log(e); outtime = 0; }
 		}
@@ -159,7 +157,7 @@ function typeScriptCompile(tsconfig, rebuild) {
 	try {
 		sourcetime = latestTime(fileNames);
 	}
-	catch(e) {
+	catch (e) {
 		console.log(e);
 		sourcetime = (new Date()).getTime();
 	}

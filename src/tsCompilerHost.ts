@@ -1,5 +1,5 @@
 import * as g from './generator';
-import * as log from  './logger';
+import * as log from './logger';
 import * as pu from './pathUtils';
 import * as ts from 'typescript';
 import * as fs from 'fs';
@@ -54,12 +54,17 @@ export function createCompilerHost(currentDirectory: string, logger: log.ILogger
     }
     return {
         getSourceFile: getSourceFile,
-        getDefaultLibFileName: function(options) { return defaultLibFilename; },
+        getDirectories: (path: string) => {
+            logger.error('tsCompilerHost.getDirectories() is not implemented!', path);
+            throw new Error(`tsCompilerHost.getDirectories() is not implemented! path requested: ${path}`);
+            // return []; 
+        },
+        getDefaultLibFileName: function (options) { return defaultLibFilename; },
         writeFile: writeFile,
-        getCurrentDirectory: function() { return currentDirectory; },
-        useCaseSensitiveFileNames: function() { return ts.sys.useCaseSensitiveFileNames; },
+        getCurrentDirectory: function () { return currentDirectory; },
+        useCaseSensitiveFileNames: function () { return ts.sys.useCaseSensitiveFileNames; },
         getCanonicalFileName: getCanonicalFileName,
-        getNewLine: function() { return '\n'; },
+        getNewLine: function () { return '\n'; },
         fileExists(fileName: string): boolean {
             try {
                 return fs.statSync(path.join(currentDirectory, fileName)).isFile();
