@@ -58,7 +58,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 sourceFiles: params.sourceFiles,
                                 typeChecker: params.typeChecker
                             }, alias.sourceType, g.composeCursorKey(parentStateKey, key));
-                        else if (g.isComponentState(...innerResolvedState.heritages) || innerResolvedState.source === tsa.StateSource.iface)
+                        else
                             nexts.push({ state: innerResolvedState, data: innerData, externalFileAlias: alias.prefix, prefix: key });
                 }
             }

@@ -11,7 +11,7 @@ describe('cursorsGenerator', () => {
     let testCase: { do: () => Promise<string> };
     let logger = log.create(false, false, false, false);
 
-    describe('auto-generated header', () => {
+    describe('cursors for a class', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
@@ -23,7 +23,7 @@ describe('cursorsGenerator', () => {
             };
         });
 
-        it('adds file with state', (done) => {
+        it('adds file with class', (done) => {
             testCase
                 .do()
                 .then(text => {
@@ -49,13 +49,63 @@ export default rootCursor;
                 });
         });
 
-        it('adds note', (done) => {
+        it('adds id', (done) => {
             testCase
                 .do()
                 .then(text => {
                     expect(text).toContain(`
 export const idCursor: bf.ICursor<string> = {
     key: 'id'
+};
+`);
+                    done();
+                });
+        });
+    });
+
+    describe('state with class property', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('IApplicationState', './stateWithExternalClass.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithExternalClass') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        });
+
+        it('adds file with class', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+import * as p from './pointAndPosition';
+`);
+                    done();
+                });
+        });
+
+        it('adds point', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const pointCursor: bf.ICursor<p.PointDto> = {
+    key: 'point'
+};
+`);
+                    done();
+                });
+        });
+
+        it('adds point id', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const pointIdCursor: bf.ICursor<string> = {
+    key: 'point.id'
 };
 `);
                     done();
