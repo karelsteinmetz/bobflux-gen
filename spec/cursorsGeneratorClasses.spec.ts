@@ -22,7 +22,7 @@ describe('cursorsGenerator', () => {
                 })
             };
         });
-        
+
         it('adds file with state', (done) => {
             testCase
                 .do()
@@ -33,7 +33,7 @@ import * as s from './pointAndPosition';
                     done();
                 });
         });
-        
+
         it('adds roots', (done) => {
             testCase
                 .do()

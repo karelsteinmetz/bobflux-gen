@@ -41,24 +41,25 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         let inner = state.fields.map(f => {
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
             let fieldType = f.isArray ? `${f.type}[]` : f.type;
-            if (applyRecurse && g.isExternalState(fieldType)) {
-                let typeParts = fieldType.split('.');
-                let foundImport = g.findImportAlias(data.imports, typeParts[0]);
-                if (foundImport === null)
-                    return '';
-                let innerFilePath = path.join(path.dirname(params.stateFilePath), data.imports.filter(i => i.prefix === typeParts[0])[0].relativePath + '.ts');
+            if (applyRecurse && g.isExternalState(fieldType, data)) {
+                let alias = g.getExternalAlias(fieldType, data);
+                let innerFilePath = path.join(path.dirname(params.stateFilePath), alias.relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {
                     let innerData = tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker);
-                    let innerResolvedState = g.resolveState(innerData.states, typeParts[1]);
+                    let innerResolvedState = g.resolveState(innerData.states, alias.sourceType);
                     if (innerResolvedState)
                         writeCursors({
                             stateFilePath: innerSourceFile.path,
                             data: tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker),
                             sourceFiles: params.sourceFiles,
                             typeChecker: params.typeChecker
-                        }, typeParts[1], g.composeCursorKey(parentStateKey, key));
+                        }, alias.sourceType, g.composeCursorKey(parentStateKey, key));
                 }
+            }
+            if (g.isExternalState(fieldType, data)) {
+                let alias = g.getExternalAlias(fieldType, data);
+                fieldType = `${alias.prefix}.${alias.sourceType}`;
             }
             let states = data.states.filter(s => s.typeName === f.type);
             if (states.length > 0)

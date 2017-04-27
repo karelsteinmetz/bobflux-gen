@@ -135,7 +135,7 @@ export * from '../spec/resources/stateWithInner';
                     .do()
                     .then(text => {
                         expect(text).toContain(`
-export function isApplicationStateBuilder(obj: ss.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
+export function isApplicationStateBuilder(obj: s1.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
     return 'build' in obj;
 }
 `);
@@ -162,7 +162,7 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as ss from '../spec/resources/stateWithInner';`);
+                        expect(text).toContain(`import * as s1 from '../spec/resources/stateWithInner';`);
                         done();
                     });
             });
@@ -433,6 +433,42 @@ export class ApplicationStateBuilder {
                 });
         });
     });
+
+    describe('file stateWithExternalTypeAndDirectRenamedImport', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithExternalTypeAndDirectRenamedImport.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithExternalTypeAndDirectRenamedImport') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        })
+
+        it('imports type file', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as stateWithType from './stateWithType';`);
+                    done();
+                });
+        });
+
+        it('generate correct with', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withSomeExternalMap(someExternalMap: stateWithType.MyMap): ApplicationStateBuilder {
+        this.state.someExternalMap = someExternalMap;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+    })
 
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void, relativePath: string = null, version: string = 'AVersion'): gb.IGenerationProject {
         return {
