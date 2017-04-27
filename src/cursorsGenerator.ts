@@ -42,9 +42,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         let nexts: INextIteration[] = [];
         let inner = state.fields.map(f => {
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
-            let fieldType = f.isArray ? `${f.type}[]` : f.type;
-            if (applyRecurse && g.isExternalState(fieldType, data)) {
-                let alias = g.getExternalAlias(fieldType, data);
+            if (applyRecurse && !f.isArray && g.isExternalState(f.type, data)) {
+                let alias = g.getExternalAlias(f.type, data);
                 let innerFilePath = path.join(path.dirname(params.stateFilePath), alias.relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {
@@ -62,23 +61,14 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             nexts.push({ state: innerResolvedState, data: innerData, externalFileAlias: alias.prefix, prefix: key });
                 }
             }
-            if (g.isExternalState(fieldType, data)) {
-                let alias = g.getExternalAlias(fieldType, data);
-                fieldType = `${alias.prefix}.${alias.sourceType}`;
-            }
-            let states = data.states.filter(s => s.typeName === f.type);
-            if (states.length > 0)
-                fieldType = `${stateAlias}.${fieldType}`;
+            const fieldType = getFullType(f, data, stateAlias);
             if (f.isArray)
                 return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
-            if (states.length > 0)
+            let states = data.states.filter(s => s.typeName === f.type);
+            if (states.length > 0 && !f.typeArguments /* not implemented yet*/)
                 nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
-            if (g.isFieldEnumType(fieldType, data.enums))
-                fieldType = `${stateAlias}.${fieldType}`;
-            if (g.isCustomType(fieldType, data.customTypes))
-                fieldType = `${stateAlias}.${fieldType}`;
             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
         }).join('\n');
         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
@@ -95,6 +85,23 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             })
             .catch(e => r(e));
     })
+}
+
+function getFullType(f: tsa.IStateFieldData, data: tsa.IStateSourceData, stateAlias: string) {
+    let fieldType = f.type;
+    if (g.isExternalState(f.type, data)) {
+        let alias = g.getExternalAlias(f.type, data);
+        fieldType = `${alias.prefix}.${alias.sourceType}`;
+    }
+    if (g.isFieldEnumType(fieldType, data.enums)
+        || g.isCustomType(fieldType, data.customTypes)
+        || data.states.filter(s => s.typeName === f.type).length > 0)
+        fieldType = `${stateAlias}.${fieldType}`;
+    if (f.typeArguments)
+        fieldType += `<${f.typeArguments.join(', ')}>`;
+    if (f.isArray)
+        fieldType += '[]';
+    return fieldType;
 }
 
 function createRootKey(key: string, bobfluxPrefix: string): string {

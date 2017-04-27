@@ -747,6 +747,33 @@ export const numberValueCursor: bf.ICursor<number> = {
         });
     });
 
+    describe('class with generics', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('ApplicationState', './classWithGenericType.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('classWithGenericType') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+
+        it('generates cursor for generic type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const genericCursor: bf.ICursor<s.GenericState<string>> = {
+    key: 'generic'
+};
+`);
+                    done();
+                });
+
+        });
+    });
+
     it('generates state with parent cursor key', (done) => {
         testCase = {
             do: () => new Promise<string>((f, r) => {
