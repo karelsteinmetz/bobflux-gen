@@ -306,7 +306,7 @@ export const todoSectionEditedTodoNameCursor: f.ICursor<string> = {
             };
         });
 
-        it('generates cursors for appState which has map fields', (done) => {
+        it('generates cursors for appState which has simple map fields', (done) => {
             testCase
                 .do()
                 .then(text => {
@@ -317,8 +317,21 @@ export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
 export default rootCursor;
 
-export const stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
+export const stringCountsCursor: bf.ICursor<{ [s: string]: number }> = {
     key: 'stringCounts'
+};
+`);
+                    done();
+                });
+        });
+
+        it('generates cursors for appState which has map fields with interface', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const nestedStatesCursor: bf.ICursor<{ [s: string]: s.INestedState }> = {
+    key: 'nestedStates'
 };
 `);
                     done();

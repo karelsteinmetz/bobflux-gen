@@ -76,8 +76,9 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             if (states.length > 1)
                                 throw 'Two states with same name could not be parsed. It\'s compilation error.';
                             logger.info('Field proccessing ended for: ', f.name);
-                            if (states.length > 0) {
-                                nexts.push({ state: states[0], prefix: key }); nexts.push({ state: states[0], prefix: key });
+                            if (states.length > 0 && !f.typeArguments)
+                                nexts.push({ state: states[0], prefix: key });
+                            if (states.length > 0 && !f.indexer && !f.typeArguments) {
                                 let builderImport = g.isExternalState(f.type, data) ? `${stateAlias}Builders.` : '';
                                 return createWithForFieldAndBuilder(builderName, f.name, `${stateAlias}.${f.type}`, `${nameUnifier.removeIfacePrefix(f.type)}Builder`, builderImport, f.isArray);
                             }
@@ -85,10 +86,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 return createWithForField(
                                     builderName,
                                     f.name,
-                                    g.isFieldEnumType(f.type, data.enums) || g.isCustomType(f.type, data.customTypes)
-                                        ? `${stateAlias}.${f.type}`
-                                        : getType(f.type, data),
-                                    f.isArray
+                                    g.getFullType(f, data, stateAlias)
                                 );
                         }).join('\n');
                         content += createBuilderFooter(stateTypeName, bobfluxPrefix, prefix);
@@ -133,13 +131,6 @@ function resolveRelativePath(filePath: string, projectRelativePath: string, pare
     return path.relative(relativePath, path.dirname(filePath));
 }
 
-function getType(fieldType: string, data: tsa.IStateSourceData) {
-    if (!g.isExternalState(fieldType, data))
-        return fieldType;
-    const alias = g.getExternalAlias(fieldType, data);
-    return `${alias.prefix}.${alias.sourceType}`;
-}
-
 function createBuilderHeader(builderName: string, stateName: string, stateTypeName: string, stateAlias: string) {
     return `export class ${builderName} {
     protected state: ${stateName} = ${stateAlias}.createDefault${nameUnifier.removeIfacePrefix(stateTypeName)}();
@@ -161,8 +152,8 @@ function createWithForFieldAndBuilder(builderName: string, fieldName: string, fi
 `
 }
 
-function createWithForField(builderName: string, fieldName: string, fieldType: string, isArray: boolean): string {
-    return `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(${fieldName}: ${isArray ? fieldType + '[]' : fieldType}): ${builderName} {
+function createWithForField(builderName: string, fieldName: string, fieldType: string): string {
+    return `    public ${nameUnifier.getStatePrefixFromKeyPrefix('with', fieldName)}(${fieldName}: ${fieldType}): ${builderName} {
         this.state.${fieldName} = ${fieldName};
         return this;
     };

@@ -19,8 +19,14 @@ export function create(saveCallback: (state: nv.IStateFieldData) => void): nv.IN
             }
             else if (ps.type.kind === ts.SyntaxKind.ArrayType)
                 saveCallback({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true });
-            else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)
-                saveCallback({ name: ps.name.getText(), type: (<ts.TypeLiteralNode>ps.type).getText() });
+            else if (ps.type.kind === ts.SyntaxKind.TypeLiteral) {
+                const tlType = <ts.TypeLiteralNode>ps.type;
+                if (tlType.members[0].kind === ts.SyntaxKind.IndexSignature) {
+                    const is = <ts.IndexSignatureDeclaration>tlType.members[0];
+                    saveCallback({ name: ps.name.getText(), type: is.type.getText(), indexer: is.parameters[0].getText() })
+                } else
+                    saveCallback({ name: ps.name.getText(), type: tlType.getText() });
+            }
             else
                 saveCallback({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind) });
         }

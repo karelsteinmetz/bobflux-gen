@@ -468,7 +468,48 @@ export class ApplicationStateBuilder {
                     done();
                 });
         });
-    })
+    });
+
+    describe('file stateWithMap', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithMap.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithMap') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        })
+
+        it('generate correct with for simple type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withStringCounts(stringCounts: { [s: string]: number }): ApplicationStateBuilder {
+        this.state.stringCounts = stringCounts;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+
+        it('generate correct with for named type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withNestedStates(nestedStates: { [s: string]: s.INestedState }): ApplicationStateBuilder {
+        this.state.nestedStates = nestedStates;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+    });
 
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void, relativePath: string = null, version: string = 'AVersion'): gb.IGenerationProject {
         return {

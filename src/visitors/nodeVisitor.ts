@@ -10,6 +10,7 @@ export interface IStateFieldData {
     type: string;
     isState?: boolean;
     isArray?: boolean;
+    indexer?: string;
     typeArguments?: string[];
 }
 

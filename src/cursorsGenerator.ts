@@ -61,7 +61,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             nexts.push({ state: innerResolvedState, data: innerData, externalFileAlias: alias.prefix, prefix: key });
                 }
             }
-            const fieldType = getFullType(f, data, stateAlias);
+            const fieldType = g.getFullType(f, data, stateAlias);
             if (f.isArray)
                 return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
             let states = data.states.filter(s => s.typeName === f.type);
@@ -85,23 +85,6 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             })
             .catch(e => r(e));
     })
-}
-
-function getFullType(f: tsa.IStateFieldData, data: tsa.IStateSourceData, stateAlias: string) {
-    let fieldType = f.type;
-    if (g.isExternalState(f.type, data)) {
-        let alias = g.getExternalAlias(f.type, data);
-        fieldType = `${alias.prefix}.${alias.sourceType}`;
-    }
-    if (g.isFieldEnumType(fieldType, data.enums)
-        || g.isCustomType(fieldType, data.customTypes)
-        || data.states.filter(s => s.typeName === f.type).length > 0)
-        fieldType = `${stateAlias}.${fieldType}`;
-    if (f.typeArguments)
-        fieldType += `<${f.typeArguments.join(', ')}>`;
-    if (f.isArray)
-        fieldType += '[]';
-    return fieldType;
 }
 
 function createRootKey(key: string, bobfluxPrefix: string): string {

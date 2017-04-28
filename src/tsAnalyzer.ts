@@ -31,7 +31,7 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
             let bvVisitor = bv.createAllBfgVisitors(() => result);
 
             function visit(n: ts.Node, deepness: number) {
-                logger.debug(' '.repeat(deepness) + ts.SyntaxKind[n.kind]);
+                logger.debug(`${' '.repeat(deepness)}${ts.SyntaxKind[n.kind]}: ${n.getText().substr(0, 70)}`);
 
                 bvVisitor.accept(n) && bvVisitor.visit(n);
 

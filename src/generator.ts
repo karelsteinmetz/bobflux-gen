@@ -99,6 +99,25 @@ export function getExternalAlias(type: string, data: tsa.IStateSourceData): tsa.
     );
 }
 
+export function getFullType(f: tsa.IStateFieldData, data: tsa.IStateSourceData, stateAlias: string) {
+    let fieldType = f.type;
+    if (isExternalState(f.type, data)) {
+        let alias = getExternalAlias(f.type, data);
+        fieldType = `${alias.prefix}.${alias.sourceType}`;
+    }
+    if (isFieldEnumType(fieldType, data.enums)
+        || isCustomType(fieldType, data.customTypes)
+        || data.states.filter(s => s.typeName === f.type).length > 0)
+        fieldType = `${stateAlias}.${fieldType}`;
+    if (f.typeArguments)
+        fieldType += `<${f.typeArguments.join(', ')}>`;
+    if (f.isArray)
+        fieldType += '[]';
+    if (f.indexer)
+        fieldType = `{ [${f.indexer}]: ${fieldType} }`;
+    return fieldType;
+}
+
 export function composeCursorKey(...parts: string[]): string {
     return parts.filter(p => p !== null).join('.');
 }
