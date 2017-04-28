@@ -43,7 +43,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             let fieldType = f.isArray ? `${f.type}[]` : f.type;
             if (applyRecurse && g.isExternalState(fieldType, data)) {
                 let alias = g.getExternalAlias(fieldType, data);
-                let innerFilePath = path.join(path.dirname(params.stateFilePath), alias.relativePath + '.ts');
+                let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {
                     let innerData = tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker);

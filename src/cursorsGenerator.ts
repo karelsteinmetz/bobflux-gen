@@ -44,7 +44,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
             if (applyRecurse && !f.isArray && g.isExternalState(f.type, data)) {
                 let alias = g.getExternalAlias(f.type, data);
-                let innerFilePath = path.join(path.dirname(params.stateFilePath), alias.relativePath + '.ts');
+                let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {
                     let innerData = tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker);
