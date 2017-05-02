@@ -42,8 +42,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         let nexts: INextIteration[] = [];
         let inner = state.fields.map(f => {
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
-            if (applyRecurse && !f.isArray && g.isExternalState(f.type, data)) {
-                let alias = g.getExternalAlias(f.type, data);
+            if (applyRecurse && !f.type.isArray && g.isExternalState(f.type.name, data)) {
+                let alias = g.getExternalAlias(f.type.name, data);
                 let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {
@@ -61,11 +61,11 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                             nexts.push({ state: innerResolvedState, data: innerData, externalFileAlias: alias.prefix, prefix: key });
                 }
             }
-            const fieldType = g.getFullType(f, data, stateAlias);
-            if (f.isArray)
+            const fieldType = g.getFullType(f.type, data, stateAlias);
+            if (f.type.isArray)
                 return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
-            let states = data.states.filter(s => s.typeName === f.type);
-            if (states.length > 0 && !f.typeArguments /* not implemented yet*/)
+            let states = data.states.filter(s => s.typeName === f.type.name);
+            if (states.length > 0 && !f.type.arguments /* not implemented yet*/)
                 nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
                 throw 'Two states with same name could not be parsed. It\'s compilation error.';

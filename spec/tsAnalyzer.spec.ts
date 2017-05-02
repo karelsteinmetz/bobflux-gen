@@ -80,7 +80,7 @@ describe('tsAnalyzer', () => {
 
                 let state = getState(data, 'IApplicationState');
 
-                expect(state.fields[0].typeArguments).toEqual(['string']);
+                expect(state.fields[0].type.arguments).toEqual([{ name: 'string' }]);
             });
         });
     });
@@ -104,7 +104,7 @@ describe('tsAnalyzer', () => {
 
                 let point = getState(data, 'PointBaseDto');
                 expect(point.fields.map(f => f.name)).toEqual(['position']);
-                expect(point.fields.map(f => f.type)).toEqual(['PositionDto']);
+                expect(point.fields.map(f => f.type.name)).toEqual(['PositionDto']);
             });
 
             it('gets name of fields in point', () => {
@@ -146,7 +146,7 @@ describe('tsAnalyzer', () => {
 
                 let state = getState(data, 'ApplicationState');
 
-                expect(state.fields[0].typeArguments).toEqual(['string']);
+                expect(state.fields[0].type.arguments).toEqual([{ name: 'string' }]);
             });
         });
     })

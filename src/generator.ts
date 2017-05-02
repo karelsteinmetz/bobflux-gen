@@ -99,22 +99,22 @@ export function getExternalAlias(type: string, data: tsa.IStateSourceData): tsa.
     );
 }
 
-export function getFullType(f: tsa.IStateFieldData, data: tsa.IStateSourceData, stateAlias: string) {
-    let fieldType = f.type;
-    if (isExternalState(f.type, data)) {
-        let alias = getExternalAlias(f.type, data);
+export function getFullType(t: tsa.ITypeData, data: tsa.IStateSourceData, stateAlias: string) {
+    let fieldType = t.name;
+    if (isExternalState(t.name, data)) {
+        let alias = getExternalAlias(t.name, data);
         fieldType = `${alias.prefix}.${alias.sourceType}`;
     }
     if (isFieldEnumType(fieldType, data.enums)
         || isCustomType(fieldType, data.customTypes)
-        || data.states.filter(s => s.typeName === f.type).length > 0)
+        || data.states.filter(s => s.typeName === t.name).length > 0)
         fieldType = `${stateAlias}.${fieldType}`;
-    if (f.typeArguments)
-        fieldType += `<${f.typeArguments.join(', ')}>`;
-    if (f.isArray)
+    if (t.arguments)
+        fieldType += `<${t.arguments.map(t => getFullType(t, data, stateAlias)).join(', ')}>`;
+    if (t.isArray)
         fieldType += '[]';
-    if (f.indexer)
-        fieldType = `{ [${f.indexer}]: ${fieldType} }`;
+    if (t.indexer)
+        fieldType = `{ [${t.indexer}]: ${fieldType} }`;
     return fieldType;
 }
 

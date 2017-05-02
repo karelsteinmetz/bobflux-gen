@@ -5,13 +5,16 @@ export interface INodeVisitor {
     visit(n: ts.Node): void;
 }
 
-export interface IStateFieldData {
+export interface ITypeData {
     name: string;
-    type: string;
-    isState?: boolean;
     isArray?: boolean;
     indexer?: string;
-    typeArguments?: string[];
+    arguments?: ITypeData[];
+}
+
+export interface IStateFieldData {
+    name: string;
+    type: ITypeData;
 }
 
 export interface IStateData {

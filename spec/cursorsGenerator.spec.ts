@@ -337,6 +337,19 @@ export const nestedStatesCursor: bf.ICursor<{ [s: string]: s.INestedState }> = {
                     done();
                 });
         });
+
+        it('generates cursors for appState which has map fields with generic interface', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const genericNestedStatesCursor: bf.ICursor<{ [s: string]: s.IGenericNestedState<s.INestedState> }> = {
+    key: 'genericNestedStates'
+};
+`);
+                    done();
+                });
+        });
     });
 
     describe('state with array', () => {

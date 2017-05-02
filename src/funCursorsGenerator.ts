@@ -40,7 +40,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         let nexts: INextIteration[] = [];
         let inner = state.fields.map(f => {
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
-            let fieldType = f.isArray ? `${f.type}[]` : f.type;
+            let fieldType = f.type.isArray ? `${f.type.name}[]` : f.type.name;
             if (applyRecurse && g.isExternalState(fieldType, data)) {
                 let alias = g.getExternalAlias(fieldType, data);
                 let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
@@ -61,12 +61,12 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 let alias = g.getExternalAlias(fieldType, data);
                 fieldType = `${alias.prefix}.${alias.sourceType}`;
             }
-            let states = data.states.filter(s => s.typeName === f.type);
+            let states = data.states.filter(s => s.typeName === f.type.name);
             if (states.length > 0)
                 fieldType = `${stateAlias}.${fieldType}`;
-            if (f.isArray)
+            if (f.type.isArray)
                 return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName)
-                    + createIndexedFieldCursor(prefix, key, bobfluxPrefix, states.length > 0 ? `${stateAlias}.${f.type}` : f.type, mainStateTypeName)
+                    + createIndexedFieldCursor(prefix, key, bobfluxPrefix, states.length > 0 ? `${stateAlias}.${f.type.name}` : f.type.name, mainStateTypeName)
             if (states.length > 0)
                 nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
             if (states.length > 1)
