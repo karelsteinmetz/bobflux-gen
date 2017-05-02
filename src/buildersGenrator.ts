@@ -106,9 +106,11 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                                 : path.join(rootRelativePath.replace(/\\/g, "/"), data.fileName),
                             !relativePath
                                 ? data.imports
-                                : data.imports.map(i => <tsa.IImportData>Object.assign({}, i, {
-                                    relativePath: path.join(rootRelativePath.replace(/\\/g, "/"), i.relativePath)
-                                }))
+                                : data.imports.map(i => i.relativePath.startsWith('.')
+                                    ? Object.assign({}, i, {
+                                        relativePath: path.join(rootRelativePath.replace(/\\/g, "/"), i.relativePath)
+                                    })
+                                    : i)
                         )
                         + createFieldsContent(mainState, parentStateKey)
                     );
