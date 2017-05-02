@@ -15,8 +15,8 @@ describe('cursorsGenerator', () => {
         beforeEach(() => {
             testCase = {
                 do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('PointDto', './pointAndPosition.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('pointAndPosition') !== -1)
+                    g.default(aProject('PointDto', './point.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('point') !== -1)
                             f(b.toString('utf8'));
                     }), tsa.create(logger), logger).run();
                 })
@@ -28,7 +28,7 @@ describe('cursorsGenerator', () => {
                 .do()
                 .then(text => {
                     expect(text).toContain(`
-import * as s from './pointAndPosition';
+import * as s from './point';
 `);
                     done();
                 });
@@ -75,12 +75,23 @@ export const idCursor: bf.ICursor<string> = {
             };
         });
 
-        it('adds file with class', (done) => {
+        it('adds file import with class', (done) => {
             testCase
                 .do()
                 .then(text => {
                     expect(text).toContain(`
-import * as p from './pointAndPosition';
+import * as p from './point';
+`);
+                    done();
+                });
+        });
+
+        it('adds file import with transitively referenced class and handles duplicite import name', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+import * as p1 from './position';
 `);
                     done();
                 });
@@ -106,6 +117,32 @@ export const pointCursor: bf.ICursor<p.PointDto> = {
                     expect(text).toContain(`
 export const pointIdCursor: bf.ICursor<string> = {
     key: 'point.id'
+};
+`);
+                    done();
+                });
+        });
+
+        it('adds point position', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const pointPositionCursor: bf.ICursor<p1.PositionDto> = {
+    key: 'point.position'
+};
+`);
+                    done();
+                });
+        });
+
+        it('adds point position members', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const pointPositionXCursor: bf.ICursor<number> = {
+    key: 'point.position.x'
 };
 `);
                     done();

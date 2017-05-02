@@ -1,11 +1,7 @@
-
-export class PositionDto {
-    x: number;
-    y: number;
-};
+import * as p from './position';
 
 export class PointBaseDto {
-    position: PositionDto;
+    position: p.PositionDto;
 }
 
 export class PointDto extends PointBaseDto {
