@@ -28,10 +28,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         const stateAlias = g.createUnusedAlias(g.stateImportKey, params.data.imports);
         const bobfluxPrefix = g.resolveBobfluxPrefix(mainState);
         logger.info('Generating has been started for: ', stateFilePath);
-        let imports = params.data.imports.reduce((c, i) => {
-            c[i.fullPath] = i;
-            return c;
-        }, {});
+        const bobfluxImport = params.data.sourceDeps[bobfluxPrefix];
+        let imports: { [fullPath: string]: tsa.IImportData } = bobfluxImport ? { [bobfluxImport.fullPath]: bobfluxImport } : {};
         let stateFieldCursors = createCursorsForStateFields(params, imports, rootStateKey, params.data, mainState, bobfluxPrefix, stateAlias);
         writeCallback(
             createCursorsFilePath(stateFilePath),
