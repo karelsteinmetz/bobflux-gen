@@ -8,21 +8,51 @@ export function create(saveCallback: (state: nv.IStateFieldData) => void): nv.IN
         },
         visit: (n: ts.Node) => {
             let ps = <ts.PropertySignature>n;
-            if (ps.type.kind === ts.SyntaxKind.TypeReference) {
-                let tp = (<ts.TypeReferenceNode>ps.type);
-                saveCallback({
-                    name: ps.name.getText(),
-                    type: tp.typeName.getText(),
-                    isState: true,
-                    typeArguments: tp.typeArguments && tp.typeArguments.map(tp => tp.getText())
-                });
-            }
-            else if (ps.type.kind === ts.SyntaxKind.ArrayType)
-                saveCallback({ name: ps.name.getText(), type: (<ts.ArrayTypeNode>ps.type).elementType.getText(), isArray: true });
-            else if (ps.type.kind === ts.SyntaxKind.TypeLiteral)
-                saveCallback({ name: ps.name.getText(), type: (<ts.TypeLiteralNode>ps.type).getText() });
-            else
-                saveCallback({ name: ps.name.getText(), type: ts.tokenToString(ps.type.kind) });
+            saveCallback({
+                name: ps.name.getText(),
+                type: getType(ps.type)
+            });
         }
     }
+}
+
+export function getType(type: ts.TypeNode): nv.ITypeData {
+    if (type.kind === ts.SyntaxKind.TypeReference) {
+        let tp = (<ts.TypeReferenceNode>type);
+        return {
+            name: tp.typeName.getText(),
+            arguments: tp.typeArguments && tp.typeArguments.map(tp => getType(tp))
+        };
+    }
+    else if (type.kind === ts.SyntaxKind.ArrayType)
+        return {
+            name: (<ts.ArrayTypeNode>type).elementType.getText(),
+            isArray: true
+        };
+    else if (type.kind === ts.SyntaxKind.TypeLiteral) {
+        const tlType = <ts.TypeLiteralNode>type;
+        if (tlType.members[0].kind === ts.SyntaxKind.IndexSignature) {
+            const is = <ts.IndexSignatureDeclaration>tlType.members[0];
+            if (is.type.kind === ts.SyntaxKind.TypeReference) {
+                const tr = <ts.TypeReferenceNode>is.type;
+                return {
+                    name: tr.typeName.getText(),
+                    arguments: tr.typeArguments && tr.typeArguments.map(tp => getType(tp)),
+                    indexer: is.parameters[0].getText()
+                };
+            } else
+                return {
+                    name: is.type.getText(),
+                    indexer: is.parameters[0].getText()
+                };
+        } else
+            return {
+                name: tlType.getText()
+            };
+    }
+    else
+        return {
+            name: ts.tokenToString(type.kind)
+        };
+
 }

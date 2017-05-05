@@ -9,7 +9,7 @@ export * from './visitors/bfgVisitor';
 
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
-export const resolvePathStringLiteral = ((nn: ts.StringLiteral) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
+export const resolvePathStringLiteral = ((nn: ts.LiteralLikeNode) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
 
 export interface ITsAnalyzer {
     getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker) => bv.IStateSourceData;
@@ -20,70 +20,49 @@ export let create = (logger: log.ILogger): ITsAnalyzer => {
         getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker): bv.IStateSourceData => {
             var result: bv.IStateSourceData = {
                 sourceFile: source,
-                sourceDeps: [],
+                sourceDeps: {},
                 filePath: null,
                 fileName: null,
                 states: [],
                 imports: [],
                 enums: [],
                 customTypes: [],
-                fluxImportAlias: null
             };
-            let currentImport: bv.IImportData = null;
             let bvVisitor = bv.createAllBfgVisitors(() => result);
 
-            function visit(n: ts.Node) {
+            function visit(n: ts.Node, deepness: number) {
+                logger.debug(`${' '.repeat(deepness)}${ts.SyntaxKind[n.kind]}: ${n.getText().substr(0, 70)}`);
+
                 bvVisitor.accept(n) && bvVisitor.visit(n);
 
-                if (n.kind === ts.SyntaxKind.StringLiteral) { //9
-                    let sl = <ts.StringLiteral>n;
-                    logger.debug('StringLiteral: ', sl);
-                    if (currentImport) {
-                        currentImport.relativePath = sl.text;
-                        currentImport.fullPath = resolvePathStringLiteral(sl);
-                    }
-                }
-                if (n.kind === ts.SyntaxKind.Identifier) { //69
-                    let iden = <ts.Identifier>n;
-                    logger.debug('Identifier: ', iden);
-                }
-                if (n.kind === ts.SyntaxKind.SourceFile) { // 249
-                    let sf = <ts.SourceFile>n;
-                    logger.debug('Identifier: ', sf);
-                    result.filePath = sf.path;
-                    result.fileName = path.basename(sf.fileName, '.ts');
-                }
-                if (n.kind === ts.SyntaxKind.ImportDeclaration) { //223
-                    let im = <ts.ImportDeclaration>n;
-                    logger.debug('ImportDeclaration: ', im);
-                    if (currentImport)
-                        result.imports.push(currentImport);
-                    currentImport = { prefix: null, relativePath: null, fullPath: null };
-                }
-                if (n.kind === ts.SyntaxKind.ImportClause) { //224
-                    let ic = <ts.ImportClause>n;
-                    logger.debug('ImportClause: ', ic);
-                }
-                if (n.kind === ts.SyntaxKind.NamespaceImport) { //225
-                    let ni = <ts.NamespaceImport>n;
-                    logger.debug('NamespaceImport: ', ni);
-                    currentImport.prefix = ni.name.getText();
-                }
-
-                if (n.kind === ts.SyntaxKind.InterfaceDeclaration || n.kind === ts.SyntaxKind.ClassDeclaration) { //216, 215
-                    if (currentImport) {
-                        result.imports.push(currentImport);
-                        currentImport = null;
-                    }
-                }
-                else if (n.kind === ts.SyntaxKind.TypeReference) { //151
-                    logger.debug('TypeReference: ', n);
-                }
-                ts.forEachChild(n, visit);
+                ts.forEachChild(n, (node) => visit(node, deepness + 1));
             }
-            visit(source);
+            visit(source, 0);
+            updateSourceDeps(result);
             logger.debug('Source result: ', result);
             return result;
         }
     }
 };
+
+function updateSourceDeps(data: bv.IStateSourceData) {
+    data.imports.forEach(i => {
+        if (i.prefix)
+            data.sourceDeps[i.prefix] = i;
+        else
+            i.prefix = createUnusedAlias(path.basename(i.relativePath), data.imports);
+        i.types.forEach(t => {
+            data.sourceDeps[t.targetType] = i;
+        });
+    });
+}
+
+export function createUnusedAlias(key: string, imports: bv.IImportData[]): string {
+    let counter = 1;
+    const keyBase = key.replace(/\W/g, '_');
+    key = keyBase;
+    while (imports.find(i => i.prefix === key)) {
+        key = keyBase + counter++;
+    }
+    return key;
+}

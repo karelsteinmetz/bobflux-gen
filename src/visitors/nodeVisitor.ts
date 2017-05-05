@@ -5,12 +5,16 @@ export interface INodeVisitor {
     visit(n: ts.Node): void;
 }
 
+export interface ITypeData {
+    name: string;
+    isArray?: boolean;
+    indexer?: string;
+    arguments?: ITypeData[];
+}
+
 export interface IStateFieldData {
     name: string;
-    type: string;
-    isState?: boolean;
-    isArray?: boolean;
-    typeArguments?: string[];
+    type: ITypeData;
 }
 
 export interface IStateData {
@@ -24,14 +28,20 @@ export interface IStateData {
 }
 
 export enum StateSource {
-    cls,
-    iface
+    iface,
+    cls
 }
 
 export interface IImportData {
-    prefix: string
-    relativePath: string
-    fullPath: string
+    prefix: string;
+    relativePath: string;
+    fullPath: string;
+    types: INamedImportData[];
+}
+
+export interface INamedImportData {
+    sourceType: string;
+    targetType: string;
 }
 
 export interface IEnumData {
@@ -43,15 +53,14 @@ export interface ICustomTypeData {
 }
 
 export interface IStateSourceData {
-    sourceFile: ts.SourceFile
-    sourceDeps: [string, string][]
-    filePath: string
-    fileName: string
-    states: IStateData[],
-    imports: IImportData[],
-    enums: IEnumData[],
-    customTypes: ICustomTypeData[],
-    fluxImportAlias: string
+    sourceFile: ts.SourceFile;
+    sourceDeps: { [type: string]: IImportData };
+    filePath: string;
+    fileName: string;
+    states: IStateData[];
+    imports: IImportData[];
+    enums: IEnumData[];
+    customTypes: ICustomTypeData[];
 }
 
 export function flatten<T>(array: T[][]): T[] { return [].concat(...array); }

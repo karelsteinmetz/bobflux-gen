@@ -80,42 +80,44 @@ describe('tsAnalyzer', () => {
 
                 let state = getState(data, 'IApplicationState');
 
-                expect(state.fields[0].typeArguments).toEqual(['string']);
+                expect(state.fields[0].type.arguments).toEqual([{ name: 'string' }]);
             });
         });
     });
 
     describe('classes', () => {
-        let program: ts.Program
+        let program: ts.Program;
+        let sourceFile: ts.SourceFile;
 
         beforeEach(() => {
-            program = aProgram('./spec/resources/', 'pointAndPosition.ts');
+            program = aProgram('./spec/resources/', 'point.ts');
+            sourceFile = program.getSourceFile(program.getRootFileNames()[0]);
         });
 
         describe('generic state', () => {
             it('has parsed data', () => {
-                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+                let data = analyzer.getSourceData(sourceFile, program.getTypeChecker());
 
-                expect(data.states.length).toBe(3);
+                expect(data.states.length).toBe(2);
             });
 
             it('gets nested type of field', () => {
-                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+                let data = analyzer.getSourceData(sourceFile, program.getTypeChecker());
 
                 let point = getState(data, 'PointBaseDto');
                 expect(point.fields.map(f => f.name)).toEqual(['position']);
-                expect(point.fields.map(f => f.type)).toEqual(['PositionDto']);
+                expect(point.fields.map(f => f.type.name)).toEqual(['p.PositionDto']);
             });
 
             it('gets name of fields in point', () => {
-                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+                let data = analyzer.getSourceData(sourceFile, program.getTypeChecker());
 
                 let point = getState(data, 'PointDto');
                 expect(point.fields.map(f => f.name)).toEqual(['id']);
             });
 
-            it('gets heitages', () => {
-                let data = analyzer.getSourceData(program.getSourceFiles()[0], program.getTypeChecker());
+            it('gets heritages', () => {
+                let data = analyzer.getSourceData(sourceFile, program.getTypeChecker());
 
                 let point = getState(data, 'PointDto');
                 expect(point.heritages).toEqual(['PointBaseDto']);
@@ -146,7 +148,7 @@ describe('tsAnalyzer', () => {
 
                 let state = getState(data, 'ApplicationState');
 
-                expect(state.fields[0].typeArguments).toEqual(['string']);
+                expect(state.fields[0].type.arguments).toEqual([{ name: 'string' }]);
             });
         });
     })
@@ -154,7 +156,7 @@ describe('tsAnalyzer', () => {
     function getState(data: tsa.IStateSourceData, name: string): tsa.IStateData {
         let found = data.states.filter(s => s.typeName === name);
         if (found.length === 0)
-            throw `No state ${name} could not be found.`;
+            throw `No state ${name} could not be found. Available states: ${data.states.map(s => s.typeName)}`;
         return data.states.filter(s => s.typeName === name)[0];
     }
 

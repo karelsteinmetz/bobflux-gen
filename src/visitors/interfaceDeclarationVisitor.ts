@@ -14,7 +14,7 @@ export function create(saveCallback: (state: nv.IStateData) => void): nv.INodeVi
                 fileName: (<ts.SourceFile>id.parent).fileName,
                 fields: [],
                 heritages: id.heritageClauses ? nv.flatten(id.heritageClauses.map(h => h.types.map(t => t.getText()))) : [],
-                source: nv.StateSource.cls,
+                source: nv.StateSource.iface,
                 typeArguments: id.typeParameters && id.typeParameters.map(tp => tp.getText())
             });
         }

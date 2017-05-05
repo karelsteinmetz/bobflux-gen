@@ -64,39 +64,149 @@ export const someMapCursor: bf.ICursor<s.MyMap> = {
         });
 
         describe('externals', () => {
-            beforeEach(() => {
-                testCase = {
-                    do: () => new Promise<string>((f, r) => {
-                        g.default(aProject('IApplicationState', './stateWithExternalType.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithExternalType') !== -1)
-                                f(b.toString('utf8'));
-                        }), tsa.create(logger), logger).runRecurse();
-                    })
-                };
-            });
+            describe('namespace import', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithExternalType.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithExternalType') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger).runRecurse();
+                        })
+                    };
+                });
 
-            it('generates cursor for field of declared type', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text).toContain(`
+                it('generates import for declared file', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+import * as e from './stateWithType';
+`);
+                            done();
+                        });
+                });
+
+                it('generates cursor for field of declared type', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
 export const someExternalMapCursor: bf.ICursor<e.MyMap> = {
     key: 'someExternalMap'
 };`);
-                        done();
-                    });
-            });
+                            done();
+                        });
+                });
 
-            it('generates cursor for field of custom type in IComponentState', (done) => {
-                testCase
-                    .do()
-                    .then(text => {
-                        expect(text).toContain(`
+                it('generates cursor for field of custom type in IComponentState', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
 export const externalStateSomeMapCursor: bf.ICursor<e.MyMap> = {
     key: 'externalState.someMap'
 };`);
-                        done();
-                    });
+                            done();
+                        });
+                });
+
+            });
+
+            describe('direct type import', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithExternalTypeAndDirectImport.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithExternalType') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger).runRecurse();
+                        })
+                    };
+                });
+
+                it('generates import for declared file', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+import * as stateWithType from './stateWithType';
+`);
+                            done();
+                        });
+                });
+
+                it('generates cursor for field of declared type', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const someExternalMapCursor: bf.ICursor<stateWithType.MyMap> = {
+    key: 'someExternalMap'
+};`);
+                            done();
+                        });
+                });
+
+                it('generates cursor for field of custom type in IComponentState', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const externalStateSomeMapCursor: bf.ICursor<stateWithType.MyMap> = {
+    key: 'externalState.someMap'
+};`);
+                            done();
+                        });
+                });
+            });
+
+            describe('direct type import with rename', () => {
+                beforeEach(() => {
+                    testCase = {
+                        do: () => new Promise<string>((f, r) => {
+                            g.default(aProject('IApplicationState', './stateWithExternalTypeAndDirectRenamedImport.ts', (filename: string, b: Buffer) => {
+                                if (filename.indexOf('stateWithExternalType') !== -1)
+                                    f(b.toString('utf8'));
+                            }), tsa.create(logger), logger).runRecurse();
+                        })
+                    };
+                });
+
+                it('generates import for declared file', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+import * as stateWithType from './stateWithType';
+`);
+                            done();
+                        });
+                });
+
+                it('generates cursor for field of declared type', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const someExternalMapCursor: bf.ICursor<stateWithType.MyMap> = {
+    key: 'someExternalMap'
+};`);
+                            done();
+                        });
+                });
+
+                it('generates cursor for field of custom type in IComponentState', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const externalStateSomeMapCursor: bf.ICursor<stateWithType.MyMap> = {
+    key: 'externalState.someMap'
+};`);
+                            done();
+                        });
+                });
             });
         });
     });
@@ -196,7 +306,7 @@ export const todoSectionEditedTodoNameCursor: f.ICursor<string> = {
             };
         });
 
-        it('generates cursors for appState which has map fields', (done) => {
+        it('generates cursors for appState which has simple map fields', (done) => {
             testCase
                 .do()
                 .then(text => {
@@ -207,8 +317,34 @@ export const rootCursor: bf.ICursor<s.IApplicationState> = bf.rootCursor;
 
 export default rootCursor;
 
-export const stringCountsCursor: bf.ICursor<{ [ s: string] : number }> = {
+export const stringCountsCursor: bf.ICursor<{ [s: string]: number }> = {
     key: 'stringCounts'
+};
+`);
+                    done();
+                });
+        });
+
+        it('generates cursors for appState which has map fields with interface', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const nestedStatesCursor: bf.ICursor<{ [s: string]: s.INestedState }> = {
+    key: 'nestedStates'
+};
+`);
+                    done();
+                });
+        });
+
+        it('generates cursors for appState which has map fields with generic interface', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const genericNestedStatesCursor: bf.ICursor<{ [s: string]: s.IGenericNestedState<s.INestedState> }> = {
+    key: 'genericNestedStates'
 };
 `);
                     done();
@@ -276,7 +412,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: f.ICursor<ss.IApplicationState> = {
+export const rootCursor: f.ICursor<s1.IApplicationState> = {
     key: rootKey
 };
 
@@ -342,7 +478,7 @@ export const rootKey = 'root.subroot';
                     testCase
                         .do()
                         .then(text => {
-                            expect(text).toContain(`import * as ss from './stateWithInner';`);
+                            expect(text).toContain(`import * as s1 from './stateWithInner';`);
                             done();
                         });
                 });
@@ -361,7 +497,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: f.ICursor<ss.IApplicationState> = f.rootCursor;
+export const rootCursor: f.ICursor<s1.IApplicationState> = f.rootCursor;
 `);
                             done();
                         });
@@ -637,6 +773,33 @@ export const numberValueCursor: bf.ICursor<number> = {
         });
     });
 
+    describe('class with generics', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    g.default(aProject('ApplicationState', './classWithGenericType.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('classWithGenericType') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).run();
+                })
+            };
+        });
+
+        it('generates cursor for generic type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const genericCursor: bf.ICursor<s.GenericState<string>> = {
+    key: 'generic'
+};
+`);
+                    done();
+                });
+
+        });
+    });
+
     it('generates state with parent cursor key', (done) => {
         testCase = {
             do: () => new Promise<string>((f, r) => {
@@ -681,12 +844,5 @@ export default rootCursor;
             writeFileCallback: writeFileCallback
         }
     }
-
-    // logger = {
-    //     info: (message: string, params?: any) => { },
-    //     warning: (message: string, params?: any) => { },
-    //     error: (message: string, params?: any) => { },
-    //     debug: (message: string, params?: any) => { (message.indexOf('Visited kind') === 0 || message.indexOf('Source result') === 0) && console.log(`Debug: ${message}`, params); }
-    // }
 
 });

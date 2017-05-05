@@ -135,7 +135,7 @@ export * from '../spec/resources/stateWithInner';
                     .do()
                     .then(text => {
                         expect(text).toContain(`
-export function isApplicationStateBuilder(obj: ss.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
+export function isApplicationStateBuilder(obj: s1.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
     return 'build' in obj;
 }
 `);
@@ -162,7 +162,7 @@ export function isApplicationStateBuilder(obj: ss.IApplicationState | Applicatio
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as ss from '../spec/resources/stateWithInner';`);
+                        expect(text).toContain(`import * as s1 from '../spec/resources/stateWithInner';`);
                         done();
                     });
             });
@@ -428,6 +428,83 @@ export class ApplicationStateBuilder {
         return this.state;
     }
 }
+`);
+                    done();
+                });
+        });
+    });
+
+    describe('file stateWithExternalTypeAndDirectRenamedImport', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithExternalTypeAndDirectRenamedImport.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithExternalTypeAndDirectRenamedImport') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        })
+
+        it('imports type file', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as stateWithType from './stateWithType';`);
+                    done();
+                });
+        });
+
+        it('generate correct with', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withSomeExternalMap(someExternalMap: stateWithType.MyMap): ApplicationStateBuilder {
+        this.state.someExternalMap = someExternalMap;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+    });
+
+    describe('file stateWithMap', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithMap.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithMap') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        })
+
+        it('generate correct with for simple type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withStringCounts(stringCounts: { [s: string]: number }): ApplicationStateBuilder {
+        this.state.stringCounts = stringCounts;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+
+        it('generate correct with for named type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withNestedStates(nestedStates: { [s: string]: s.INestedState }): ApplicationStateBuilder {
+        this.state.nestedStates = nestedStates;
+        return this;
+    };
 `);
                     done();
                 });

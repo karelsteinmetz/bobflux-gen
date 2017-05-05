@@ -6,6 +6,8 @@ import * as pdv from './propertyDeclarationVisitor';
 import * as psv from './propertySignatureVisitor';
 import * as edv from './enumDeclarationVisitor';
 import * as tadv from './typeAliasDeclarationVisitor';
+import * as inv from './importDeclarionVisitor';
+import * as sfv from './sourceFileVisitor';
 
 export * from './nodeVisitor';
 
@@ -22,6 +24,12 @@ export function createAllBfgVisitors(saveCallback: () => nv.IStateSourceData) {
         psv.create(f => {
             let data = saveCallback();
             data.states[data.states.length - 1].fields.push(f);
+        }),
+        inv.create(i => saveCallback().imports.push(i)),
+        sfv.create(sf => {
+            let data = saveCallback();
+            data.fileName = sf.fileName;
+            data.filePath = sf.filePath;
         })
     );
 }
