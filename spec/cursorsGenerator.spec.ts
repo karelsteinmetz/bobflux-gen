@@ -13,14 +13,7 @@ describe('cursorsGenerator', () => {
 
     describe('auto-generated header', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateTodos.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateTodos') !== -1)
-                            f(b.toString('utf8'));
-                    }, '0.5.3'), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateTodos.ts', undefined, '0.5.3');
         });
 
         it('adds note', (done) => {
@@ -40,14 +33,7 @@ describe('cursorsGenerator', () => {
     describe('custom types', () => {
         describe('internals', () => {
             beforeEach(() => {
-                testCase = {
-                    do: () => new Promise<string>((f, r) => {
-                        g.default(aProject('IMapState', './stateWithType.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('stateWithType') !== -1)
-                                f(b.toString('utf8'));
-                        }), tsa.create(logger), logger).run();
-                    })
-                };
+                testCase = testCaseRun('IMapState', './stateWithType.ts');
             });
 
             it('generates cursor for field of custom type', (done) => {
@@ -66,14 +52,7 @@ export const someMapCursor: bf.ICursor<s.MyMap> = {
         describe('externals', () => {
             describe('namespace import', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithExternalType.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithExternalType') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).runRecurse();
-                        })
-                    };
+                    testCase = testCaseRunRecurse('IApplicationState', './stateWithExternalType.ts', 'stateWithExternalType');
                 });
 
                 it('generates import for declared file', (done) => {
@@ -115,14 +94,7 @@ export const externalStateSomeMapCursor: bf.ICursor<e.MyMap> = {
 
             describe('direct type import', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithExternalTypeAndDirectImport.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithExternalType') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).runRecurse();
-                        })
-                    };
+                    testCase = testCaseRunRecurse('IApplicationState', './stateWithExternalTypeAndDirectImport.ts', 'stateWithExternalType');
                 });
 
                 it('generates import for declared file', (done) => {
@@ -163,14 +135,7 @@ export const externalStateSomeMapCursor: bf.ICursor<stateWithType.MyMap> = {
 
             describe('direct type import with rename', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithExternalTypeAndDirectRenamedImport.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithExternalType') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).runRecurse();
-                        })
-                    };
+                    testCase = testCaseRunRecurse('IApplicationState', './stateWithExternalTypeAndDirectRenamedImport.ts', 'stateWithExternalType');
                 });
 
                 it('generates import for declared file', (done) => {
@@ -213,14 +178,7 @@ export const externalStateSomeMapCursor: bf.ICursor<stateWithType.MyMap> = {
 
     describe('enums', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateWithEnum.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateWithEnum') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateWithEnum.ts');
         });
 
         it('generates cursor for field of enum type', (done) => {
@@ -239,14 +197,7 @@ export const someEnumCursor: bf.ICursor<s.SomeEnum> = {
 
     describe('state todos', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateTodos.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateTodos') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateTodos.ts');
         });
 
         it('generates cursors for todos', (done) => {
@@ -296,14 +247,7 @@ export const todoSectionEditedTodoNameCursor: f.ICursor<string> = {
 
     describe('state with map', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateWithMap.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateWithMap') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateWithMap.ts');
         });
 
         it('generates cursors for appState which has simple map fields', (done) => {
@@ -354,14 +298,7 @@ export const genericNestedStatesCursor: bf.ICursor<{ [s: string]: s.IGenericNest
 
     describe('state with array', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateWithArray.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateWithArray') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateWithArray.ts');
         });
 
         it('generates cursors for appState which has array fields', (done) => {
@@ -386,14 +323,7 @@ export const numbersCursor: bf.ICursor<s.INumber[]> = {
         describe('with rootStateKey', () => {
             describe('file stateWithInner', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithInner') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger, 'root.subroot').runRecurse();
-                        })
-                    };
+                    testCase = testCaseRunRecurse('IApplicationState', './stateWithInner.ts', 'stateWithInner', 'root.subroot');
                 });
 
                 it('contains rootKey', (done) => {
@@ -438,14 +368,7 @@ export const innerCursor: f.ICursor<s.IInnerState> = {
 
             describe('file stateWithExternalState', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithExternalState') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger, 'root.subroot').run();
-                        })
-                    };
+                    testCase = testCaseRun('IApplicationState', 'stateWithExternalState.ts', 'root.subroot');
                 });
 
                 it('generates cursors for appState fields', (done) => {
@@ -464,14 +387,7 @@ export const rootKey = 'root.subroot';
         describe('without rootStateKey', () => {
             describe('file stateWithInner', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithInner') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).runRecurse();
-                        })
-                    };
+                    testCase = testCaseRunRecurse('IApplicationState', './stateWithInner.ts', 'stateWithInner');
                 });
 
                 it('contains import of state file', (done) => {
@@ -519,14 +435,7 @@ export const innerCursor: f.ICursor<s.IInnerState> = {
 
             describe('file stateWithExternalState', () => {
                 beforeEach(() => {
-                    testCase = {
-                        do: () => new Promise<string>((f, r) => {
-                            g.default(aProject('IApplicationState', 'stateWithExternalState.ts', (filename: string, b: Buffer) => {
-                                if (filename.indexOf('stateWithExternalState') !== -1)
-                                    f(b.toString('utf8'));
-                            }), tsa.create(logger), logger).runRecurse();
-                        })
-                    };
+                    testCase = testCaseRunRecurse('IApplicationState', 'stateWithExternalState.ts', 'stateWithExternalState')
                 });
 
                 it('imports related state', (done) => {
@@ -536,7 +445,6 @@ export const innerCursor: f.ICursor<s.IInnerState> = {
                             expect(text.split('\n')[6]).toBe(`import * as s from './stateWithExternalState';`);
                             done();
                         })
-                        .catch(e => { expect(e).toBeUndefined(); done(); });
                 });
 
                 it('imports bobflux as node module', (done) => {
@@ -600,13 +508,7 @@ export const nestedComponentStateNumberValueCursor: bf.ICursor<number> = {
 
     describe('stateWithNestedState', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateWithNestedState.ts', (filename: string, b: Buffer) => {
-                        f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateWithNestedState.ts')
         });
 
         it('imports bobflux as node module', (done) => {
@@ -707,14 +609,7 @@ export const secondNestedStringValueCursor: bf.ICursor<string> = {
 
     describe('state with base types', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('IApplicationState', './stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('stateWithBaseTypes') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('IApplicationState', './stateWithBaseTypes.ts');
         });
 
         it('imports bobflux as node module', (done) => {
@@ -775,14 +670,7 @@ export const numberValueCursor: bf.ICursor<number> = {
 
     describe('class with generics', () => {
         beforeEach(() => {
-            testCase = {
-                do: () => new Promise<string>((f, r) => {
-                    g.default(aProject('ApplicationState', './classWithGenericType.ts', (filename: string, b: Buffer) => {
-                        if (filename.indexOf('classWithGenericType') !== -1)
-                            f(b.toString('utf8'));
-                    }), tsa.create(logger), logger).run();
-                })
-            };
+            testCase = testCaseRun('ApplicationState', './classWithGenericType.ts');
         });
 
         it('generates cursor for generic type', (done) => {
@@ -801,15 +689,7 @@ export const genericCursor: bf.ICursor<s.GenericState<string>> = {
     });
 
     it('generates state with parent cursor key', (done) => {
-        testCase = {
-            do: () => new Promise<string>((f, r) => {
-                g.default(aProject('IApplicationState', './stateWithBaseTypes.ts', (filename: string, b: Buffer) => {
-                    if (filename.indexOf('stateWithBaseTypes') !== -1)
-                        f(b.toString('utf8'));
-                }), tsa.create(logger), logger, 'parentCursorKey').run();
-            })
-        };
-        testCase
+        testCaseRun('IApplicationState', './stateWithBaseTypes.ts', 'parentCursorKey')
             .do()
             .then(text => {
                 expect(text).toContain(`
@@ -845,4 +725,29 @@ export default rootCursor;
         }
     }
 
+    function testCaseRun(appStateName: string, appFilePath: string, rootStateKey?: string, version?: string) {
+        let returned = false;
+        return {
+            do: () => new Promise<string>((f, r) => {
+                g.default(aProject(appStateName, appFilePath, (filename: string, b: Buffer) => {
+                    f(b.toString('utf8'));
+                    returned = true;
+                }, version), tsa.create(logger), logger, rootStateKey).run().then(() => !returned && f(''));
+            })
+        };
+    }
+
+    function testCaseRunRecurse(appStateName: string, appFilePath: string, expectedFilename: string, rootStateKey?: string) {
+        let returned = false;
+        return {
+            do: () => new Promise<string>((f, r) => {
+                g.default(aProject(appStateName, appFilePath, (filename: string, b: Buffer) => {
+                    if (filename.indexOf(expectedFilename) !== -1) {
+                        f(b.toString('utf8'));
+                        returned = true;
+                    }
+                }), tsa.create(logger), logger, rootStateKey).runRecurse().then(() => !returned && f(''));
+            })
+        };
+    }
 });
