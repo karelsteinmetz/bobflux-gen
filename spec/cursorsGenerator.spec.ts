@@ -688,6 +688,26 @@ export const genericCursor: bf.ICursor<s.GenericState<string>> = {
         });
     });
 
+    describe('state with union type', () => {
+        beforeEach(() => {
+            testCase = testCaseRun('IApplicationState', './stateWithUnionType.ts');
+        });
+
+        it('generates cursor for union type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const stringOrNullCursor: bf.ICursor<string | null> = {
+    key: 'stringOrNull'
+};
+`);
+                    done();
+                });
+
+        });
+    });
+
     it('generates state with parent cursor key', (done) => {
         testCaseRun('IApplicationState', './stateWithBaseTypes.ts', 'parentCursorKey')
             .do()

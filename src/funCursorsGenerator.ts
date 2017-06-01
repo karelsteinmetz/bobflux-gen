@@ -40,9 +40,8 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         let nexts: INextIteration[] = [];
         let inner = state.fields.map(f => {
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
-            let fieldType = f.type.isArray ? `${f.type.name}[]` : f.type.name;
-            if (applyRecurse && g.isExternalState(fieldType, data)) {
-                let alias = g.getExternalAlias(fieldType, data);
+            if (applyRecurse && f.type.length == 1 && !f.type[0].isArray && g.isExternalState(f.type[0].name, data)) {
+                let alias = g.getExternalAlias(f.type[0].name, data);
                 let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
                 let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
                 if (innerSourceFile) {
@@ -57,25 +56,20 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         }, alias.sourceType, g.composeCursorKey(parentStateKey, key));
                 }
             }
-            if (g.isExternalState(fieldType, data)) {
-                let alias = g.getExternalAlias(fieldType, data);
-                fieldType = `${alias.prefix}.${alias.sourceType}`;
-            }
-            let states = data.states.filter(s => s.typeName === f.type.name);
-            if (states.length > 0)
-                fieldType = `${stateAlias}.${fieldType}`;
-            if (f.type.isArray)
-                return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName)
-                    + createIndexedFieldCursor(prefix, key, bobfluxPrefix, states.length > 0 ? `${stateAlias}.${f.type.name}` : f.type.name, mainStateTypeName)
-            if (states.length > 0)
-                nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
-            if (states.length > 1)
-                throw 'Two states with same name could not be parsed. It\'s compilation error.';
-            if (g.isFieldEnumType(fieldType, data.enums))
-                fieldType = `${stateAlias}.${fieldType}`;
-            if (g.isCustomType(fieldType, data.customTypes))
-                fieldType = `${stateAlias}.${fieldType}`;
-            return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName);
+            let fieldType = g.getFullType(f.type, data, stateAlias);
+            let indexedCursor = '';
+            f.type.forEach(t => {
+                let states = data.states.filter(s => s.typeName === t.name);
+                if (f.type.length == 1 && t.isArray) {
+                    indexedCursor = createIndexedFieldCursor(prefix, key, bobfluxPrefix, states.length > 0 ? `${stateAlias}.${t.name}` : t.name, mainStateTypeName);
+                    return;
+                }
+                if (states.length > 0)
+                    nexts.push({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
+                if (states.length > 1)
+                    throw 'Two states with same name could not be parsed. It\'s compilation error.';
+            });
+            return createFieldCursor(prefix, key, bobfluxPrefix, fieldType, mainStateTypeName) + indexedCursor;
         }).join('\n');
         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, parentStateKey, n.data, mainStateTypeName, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
     }

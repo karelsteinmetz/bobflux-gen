@@ -61,29 +61,34 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         content += state.fields.map(f => {
                             logger.info('Field proccessing started for: ', f.name);
                             let key = g.composeCursorKey(prefix, f.name);
-                            if (applyRecurse && g.isExternalState(f.type.name, data)) {
-                                const alias = g.getExternalAlias(f.type.name, data);
-                                let innerFilePath = path.join(path.dirname(stateFilePath), alias.relativePath + '.ts');
-                                let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
-                                if (innerSourceFile) {
-                                    let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath) + '/').replace(/\\/g, "/");
-                                    logger.info('Called write builders for nested state: ', innerFilePath);
-                                    writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker), alias.sourceType, innerRelativePath, writeCallback, key);
+                            let withContent = '';
+                            f.type.forEach(t => {
+                                if (applyRecurse && g.isExternalState(t.name, data)) {
+                                    const alias = g.getExternalAlias(t.name, data);
+                                    let innerFilePath = path.join(path.dirname(stateFilePath), alias.relativePath + '.ts');
+                                    let innerSourceFile = g.resolveSourceFile(p.sourceFiles, innerFilePath);
+                                    if (innerSourceFile) {
+                                        let innerRelativePath = pu.resolveRelatioveStateFilePath(path.dirname(innerSourceFile.path), path.dirname(buildersFilePath) + '/').replace(/\\/g, "/");
+                                        logger.info('Called write builders for nested state: ', innerFilePath);
+                                        writeBuilders(innerFilePath, tsAnalyzer.getSourceData(innerSourceFile, p.typeChecker), alias.sourceType, innerRelativePath, writeCallback, key);
+                                    }
                                 }
-                            }
-                            let states = data.states.filter(s => s.typeName === f.type.name);
-                            let fieldBuilder: string = null;
-                            if (states.length > 1)
-                                throw 'Two states with same name could not be parsed. It\'s compilation error.';
-                            logger.info('Field proccessing ended for: ', f.name);
-                            if (states.length > 0 && !f.type.arguments)
-                                nexts.push({ state: states[0], prefix: key });
-                            if (states.length > 0 && !f.type.indexer && !f.type.arguments) {
-                                let builderImport = g.isExternalState(f.type.name, data) ? `${stateAlias}Builders.` : '';
-                                return createWithForFieldAndBuilder(builderName, f.name, `${stateAlias}.${f.type.name}`, `${nameUnifier.removeIfacePrefix(f.type.name)}Builder`, builderImport, f.type.isArray);
-                            }
-                            else
-                                return createWithForField(
+                                let states = data.states.filter(s => s.typeName === t.name);
+                                let fieldBuilder: string = null;
+                                if (states.length > 1)
+                                    throw 'Two states with same name could not be parsed. It\'s compilation error.';
+                                logger.info('Field proccessing ended for: ', f.name);
+                                if (states.length > 0 && !t.arguments)
+                                    nexts.push({ state: states[0], prefix: key });
+
+                                if (states.length > 0 && f.type.length === 1 && !t.indexer && !t.arguments) {
+                                    let builderImport = g.isExternalState(t.name, data) ? `${stateAlias}Builders.` : '';
+                                    withContent = createWithForFieldAndBuilder(builderName, f.name, `${stateAlias}.${t.name}`, `${nameUnifier.removeIfacePrefix(t.name)}Builder`, builderImport, t.isArray);
+                                }
+                            });
+                            return withContent
+                                ? withContent
+                                : createWithForField(
                                     builderName,
                                     f.name,
                                     g.getFullType(f.type, data, stateAlias)
@@ -92,7 +97,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                         content += createBuilderFooter(stateTypeName, bobfluxPrefix, prefix);
                         content += createIsBuilder(builderName, stateTypeName);
                         logger.info('Fields proccessing ended for: ', state.typeName);
-                        return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createFieldsContent(n.state, n.prefix)).join('\n');
+                        return content + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createFieldsContent(n.state, n.prefix)).filter(b => b).join('\n');
                     }
 
                     logger.info('Generating has been started for: ', stateFilePath);
@@ -167,7 +172,7 @@ function createBuilderFooter(stateTypeName: string, bobfluxPrefix: string, rootS
     public build(): ${stateTypeName} {
         return this.state;
     }
-    
+
     public buildToStore(): ${stateTypeName} {
         ${bobfluxPrefix}.bootstrap(${rootStateKey ? nameUnifier.createDomString(rootStateKey, 'this.state') : 'this.state'});
         return this.state;
