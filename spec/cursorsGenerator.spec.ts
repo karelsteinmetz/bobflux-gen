@@ -704,7 +704,32 @@ export const stringOrNullCursor: bf.ICursor<string | null> = {
 `);
                     done();
                 });
+        });
 
+        it('generates cursor for optional type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const optionalStringCursor: bf.ICursor<string | undefined> = {
+    key: 'optionalString'
+};
+`);
+                    done();
+                });
+        });
+
+        it('does not add extra undefined option if it is already there', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+export const doubleOptionalStringCursor: bf.ICursor<string | undefined> = {
+    key: 'doubleOptionalString'
+};
+`);
+                    done();
+                });
         });
     });
 
