@@ -98,7 +98,7 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
             });
             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
         }).join('\n');
-        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, topLevelImports, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
+        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, topLevelImports, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).filter(n => n).join('\n');
     }
     return new Promise((f, r) => {
         g.loadSourceFiles(project, tsAnalyzer, logger)
