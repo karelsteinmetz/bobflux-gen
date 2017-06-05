@@ -63,36 +63,42 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
         }
         let inner = state.fields.map(f => {
             let key = parentStateKey === null ? g.composeCursorKey(parentStateKey, prefix, f.name) : g.composeCursorKey(prefix, f.name);
-            if (applyRecurse && !f.type.isArray && g.isExternalState(f.type.name, data)) {
-                let alias = g.getExternalAlias(f.type.name, data, topLevelImports);
-                let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
-                let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
-                if (innerSourceFile) {
-                    let innerData = tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker);
-                    let innerResolvedState = g.resolveState(innerData.states, alias.sourceType);
-                    if (innerResolvedState)
-                        if (g.isRouteComponentState(...innerResolvedState.heritages))
-                            writeCursors({
-                                stateFilePath: innerSourceFile.path,
-                                data: tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker),
-                                sourceFiles: params.sourceFiles,
-                                typeChecker: params.typeChecker
-                            }, alias.sourceType, g.composeCursorKey(parentStateKey, key));
-                        else
-                            queue({ state: innerResolvedState, data: innerData, externalFileAlias: alias.prefix, prefix: key });
-                }
+            if (applyRecurse) {
+                f.type.forEach(t => {
+                    if (t.isArray || !g.isExternalState(t.name, data))
+                        return;
+                    let alias = g.getExternalAlias(t.name, data, topLevelImports);
+                    let innerFilePath = path.join(path.dirname(data.filePath), alias.relativePath + '.ts');
+                    let innerSourceFile = g.resolveSourceFile(params.sourceFiles, innerFilePath);
+                    if (innerSourceFile) {
+                        let innerData = tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker);
+                        let innerResolvedState = g.resolveState(innerData.states, alias.sourceType);
+                        if (innerResolvedState)
+                            if (g.isRouteComponentState(...innerResolvedState.heritages) && f.type.length === 1)
+                                writeCursors({
+                                    stateFilePath: innerSourceFile.path,
+                                    data: tsAnalyzer.getSourceData(innerSourceFile, params.typeChecker),
+                                    sourceFiles: params.sourceFiles,
+                                    typeChecker: params.typeChecker
+                                }, alias.sourceType, g.composeCursorKey(parentStateKey, key));
+                            else
+                                queue({ state: innerResolvedState, data: innerData, externalFileAlias: alias.prefix, prefix: key });
+                    }
+                });
             }
             const fieldType = g.getFullType(f.type, data, stateAlias, topLevelImports);
-            if (f.type.isArray)
-                return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
-            let states = data.states.filter(s => s.typeName === f.type.name);
-            if (states.length > 0 && !f.type.arguments /* not implemented yet*/)
-                queue({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
-            if (states.length > 1)
-                throw 'Two states with same name could not be parsed. It\'s compilation error.';
+            f.type.forEach(t => {
+                if (t.isArray)
+                    return;
+                let states = data.states.filter(s => s.typeName === t.name);
+                if (states.length > 0 && !t.arguments /* not implemented yet*/)
+                    queue({ state: states[0], data: data, externalFileAlias: stateAlias, prefix: key });
+                if (states.length > 1)
+                    throw 'Two states with same name could not be parsed. It\'s compilation error.';
+            });
             return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
         }).join('\n');
-        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, topLevelImports, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).join('\n');
+        return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, topLevelImports, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).filter(n => n).join('\n');
     }
     return new Promise((f, r) => {
         g.loadSourceFiles(project, tsAnalyzer, logger)

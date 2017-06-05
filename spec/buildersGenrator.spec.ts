@@ -422,7 +422,7 @@ export class ApplicationStateBuilder {
     public build(): s.IApplicationState {
         return this.state;
     }
-    
+
     public buildToStore(): s.IApplicationState {
         f.bootstrap(this.state);
         return this.state;
@@ -503,6 +503,33 @@ export class ApplicationStateBuilder {
                     expect(text).toContain(`
     public withNestedStates(nestedStates: { [s: string]: s.INestedState }): ApplicationStateBuilder {
         this.state.nestedStates = nestedStates;
+        return this;
+    };
+`);
+                    done();
+                });
+        });
+    });
+
+    describe('file stateWithUnionType', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithUnionType.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithUnionType') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        })
+
+        it('generate correct with for union type', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`
+    public withStringOrNull(stringOrNull: string | null): ApplicationStateBuilder {
+        this.state.stringOrNull = stringOrNull;
         return this;
     };
 `);

@@ -9,12 +9,12 @@ export interface ITypeData {
     name: string;
     isArray?: boolean;
     indexer?: string;
-    arguments?: ITypeData[];
+    arguments?: ITypeData[][];
 }
 
 export interface IStateFieldData {
     name: string;
-    type: ITypeData;
+    type: ITypeData[];
 }
 
 export interface IStateData {
