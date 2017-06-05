@@ -11,7 +11,7 @@ export function create(saveCallback: (state: nv.IStateFieldData) => void): nv.IN
             let p = <ts.PropertyDeclaration>n;
             saveCallback({
                 name: p.name.getText(),
-                type: psv.getType(p.type)
+                type: psv.getTypes(p.type, p.questionToken)
             });
         }
     }

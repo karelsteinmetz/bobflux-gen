@@ -106,24 +106,26 @@ export function getExternalAlias(type: string, data: tsa.IStateSourceData, topLe
     );
 }
 
-export function getFullType(t: tsa.ITypeData, data: tsa.IStateSourceData, stateAlias: string, topLevelImports: { [fullPath: string]: tsa.IImportData } = {}
+export function getFullType(ts: tsa.ITypeData[], data: tsa.IStateSourceData, stateAlias: string, topLevelImports: { [fullPath: string]: tsa.IImportData } = {}
 ) {
-    let fieldType = t.name;
-    if (isExternalState(t.name, data)) {
-        let alias = getExternalAlias(t.name, data, topLevelImports);
-        fieldType = `${alias.prefix}.${alias.sourceType}`;
-    }
-    if (isFieldEnumType(fieldType, data.enums)
-        || isCustomType(fieldType, data.customTypes)
-        || data.states.filter(s => s.typeName === t.name).length > 0)
-        fieldType = `${stateAlias}.${fieldType}`;
-    if (t.arguments)
-        fieldType += `<${t.arguments.map(t => getFullType(t, data, stateAlias, topLevelImports)).join(', ')}>`;
-    if (t.isArray)
-        fieldType += '[]';
-    if (t.indexer)
-        fieldType = `{ [${t.indexer}]: ${fieldType} }`;
-    return fieldType;
+    return ts.map(t => {
+        let fieldType = t.name;
+        if (isExternalState(t.name, data)) {
+            let alias = getExternalAlias(t.name, data, topLevelImports);
+            fieldType = `${alias.prefix}.${alias.sourceType}`;
+        }
+        if (isFieldEnumType(fieldType, data.enums)
+            || isCustomType(fieldType, data.customTypes)
+            || data.states.filter(s => s.typeName === t.name).length > 0)
+            fieldType = `${stateAlias}.${fieldType}`;
+        if (t.arguments)
+            fieldType += `<${t.arguments.map(t => getFullType(t, data, stateAlias, topLevelImports)).join(', ')}>`;
+        if (t.isArray)
+            fieldType += '[]';
+        if (t.indexer)
+            fieldType = `{ [${t.indexer}]: ${fieldType} }`;
+        return fieldType;
+    }).join(' | ');
 }
 
 export function composeCursorKey(...parts: string[]): string {
