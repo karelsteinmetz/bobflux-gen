@@ -342,7 +342,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: f.ICursor<s1.IApplicationState> = {
+export const rootCursor: f.ICursor<s.IApplicationState> = {
     key: rootKey
 };
 
@@ -357,8 +357,8 @@ export default rootCursor;
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const innerCursor: f.ICursor<s.IInnerState> = {
-    key: rootKey + '.inner'
+export const innerStateCursor: f.ICursor<is.IInnerState> = {
+    key: rootKey + '.innerState'
 };
 `);
                             done();
@@ -394,7 +394,7 @@ export const rootKey = 'root.subroot';
                     testCase
                         .do()
                         .then(text => {
-                            expect(text).toContain(`import * as s1 from './stateWithInner';`);
+                            expect(text).toContain(`import * as s from './stateWithInner';`);
                             done();
                         });
                 });
@@ -403,7 +403,26 @@ export const rootKey = 'root.subroot';
                     testCase
                         .do()
                         .then(text => {
-                            expect(text).toContain(`import * as s from './inner/stateInner';`);
+                            expect(text).toContain(`import * as is from './inner/innerState';`);
+                            done();
+                        });
+                });
+
+                it('contains import of external nested type file', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`import * as it from './inner/innerType';`);
+                            done();
+                        });
+                });
+
+                it('contains imports of external recursively nested files', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`import * as sms from './inner/some/someState';`);
+                            expect(text).toContain(`import * as smt from './inner/some/someType';`);
                             done();
                         });
                 });
@@ -413,7 +432,7 @@ export const rootKey = 'root.subroot';
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const rootCursor: f.ICursor<s1.IApplicationState> = f.rootCursor;
+export const rootCursor: f.ICursor<s.IApplicationState> = f.rootCursor;
 `);
                             done();
                         });
@@ -424,14 +443,41 @@ export const rootCursor: f.ICursor<s1.IApplicationState> = f.rootCursor;
                         .do()
                         .then(text => {
                             expect(text).toContain(`
-export const innerCursor: f.ICursor<s.IInnerState> = {
-    key: 'inner'
+export const innerStateCursor: f.ICursor<is.IInnerState> = {
+    key: 'innerState'
+};
+`);
+                            expect(text).toContain(`
+export const innerTypeCursor: f.ICursor<it.IInnerState> = {
+    key: 'innerType'
 };
 `);
                             done();
                         });
                 });
-            })
+                it('contains correct import prefix of external recursively nested state fields', (done) => {
+                    testCase
+                        .do()
+                        .then(text => {
+                            expect(text).toContain(`
+export const innerTypeSomeStateCursor: f.ICursor<sms.ISomeState> = {
+    key: 'innerType.someState'
+};
+`);
+                            expect(text).toContain(`
+export const innerTypeSomeTypeCursor: f.ICursor<smt.ISomeState> = {
+    key: 'innerType.someType'
+};
+`);
+                            expect(text).toContain(`
+export const innerTypeSomeTypeSomeFieldCursor: f.ICursor<string> = {
+    key: 'innerType.someType.someField'
+};
+`);
+                            done();
+                        });
+                });
+            });
 
             describe('file stateWithExternalState', () => {
                 beforeEach(() => {

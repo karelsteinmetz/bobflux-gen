@@ -135,7 +135,7 @@ export * from '../spec/resources/stateWithInner';
                     .do()
                     .then(text => {
                         expect(text).toContain(`
-export function isApplicationStateBuilder(obj: s1.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
+export function isApplicationStateBuilder(obj: s.IApplicationState | ApplicationStateBuilder): obj is ApplicationStateBuilder {
     return 'build' in obj;
 }
 `);
@@ -162,7 +162,7 @@ export function isApplicationStateBuilder(obj: s1.IApplicationState | Applicatio
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as s1 from '../spec/resources/stateWithInner';`);
+                        expect(text).toContain(`import * as s from '../spec/resources/stateWithInner';`);
                         done();
                     });
             });
@@ -182,7 +182,7 @@ export function isApplicationStateBuilder(obj: s1.IApplicationState | Applicatio
                 testCase = {
                     do: () => new Promise<string>((f, r) => {
                         bg.default(aProject('IApplicationState', './stateWithInner.ts', (filename: string, b: Buffer) => {
-                            if (filename.indexOf('/tests/inner/stateInner.builders.ts') !== -1)
+                            if (filename.indexOf('/tests/inner/innerState.builders.ts') !== -1)
                                 f(b.toString('utf8'));
                         }, '../../tests'), tsa.create(logger), logger).runRecurse();
                     })
@@ -193,7 +193,7 @@ export function isApplicationStateBuilder(obj: s1.IApplicationState | Applicatio
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as s from '../../spec/resources/inner/stateInner';`);
+                        expect(text).toContain(`import * as s from '../../spec/resources/inner/innerState';`);
                         done();
                     });
             });
@@ -211,7 +211,7 @@ export function isApplicationStateBuilder(obj: s1.IApplicationState | Applicatio
                 testCase
                     .do()
                     .then(text => {
-                        expect(text).toContain(`import * as sm from '../../spec/resources/inner/some/someState';`);
+                        expect(text).toContain(`import * as sms from '../../spec/resources/inner/some/someState';`);
                         done();
                     });
             });

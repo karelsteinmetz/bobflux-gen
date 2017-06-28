@@ -1,6 +1,8 @@
 import * as f from '../flux';
-import * as s from './inner/stateInner';
+import * as is from './inner/innerState';
+import * as it from './inner/innerType';
 
 export interface IApplicationState extends f.IRouteComponentState {
-    inner: s.IInnerState
+    innerState: is.IInnerState
+    innerType: it.IInnerState
 }

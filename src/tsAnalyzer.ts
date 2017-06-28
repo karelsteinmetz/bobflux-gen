@@ -9,7 +9,9 @@ export * from './visitors/bfgVisitor';
 
 const path = pathPlatformDependent.posix; // This works everythere, just use forward slashes
 
-export const resolvePathStringLiteral = ((nn: ts.LiteralLikeNode) => path.join(path.dirname(nn.getSourceFile().fileName), nn.text));
+export const resolvePathStringLiteral = ((nn: ts.LiteralLikeNode) => {
+    return path.join(path.dirname(nn.getSourceFile().path), nn.text)
+});
 
 export interface ITsAnalyzer {
     getSourceData: (source: ts.SourceFile, tc: ts.TypeChecker) => bv.IStateSourceData;
