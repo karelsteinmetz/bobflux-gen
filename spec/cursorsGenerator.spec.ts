@@ -758,7 +758,8 @@ export const stringOrNullCursor: bf.ICursor<string | null> = {
                 .then(text => {
                     expect(text).toContain(`
 export const optionalStringCursor: bf.ICursor<string | undefined> = {
-    key: 'optionalString'
+    key: 'optionalString',
+    isUndefinable: true
 };
 `);
                     done();
@@ -771,7 +772,8 @@ export const optionalStringCursor: bf.ICursor<string | undefined> = {
                 .then(text => {
                     expect(text).toContain(`
 export const doubleOptionalStringCursor: bf.ICursor<string | undefined> = {
-    key: 'doubleOptionalString'
+    key: 'doubleOptionalString',
+    isUndefinable: true
 };
 `);
                     done();
