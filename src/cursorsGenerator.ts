@@ -96,7 +96,9 @@ function runBase(applyRecurse: boolean, project: g.IGenerationProject, tsAnalyze
                 if (states.length > 1)
                     throw 'Two states with same name could not be parsed. It\'s compilation error.';
             });
-            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null);
+            // if (f.type.map(t => t.name).indexOf('undefined') >= 0)
+            //     return '';
+            return createFieldCursor(prefix, key, f.name, bobfluxPrefix, fieldType, parentStateKey !== null, f);
         }).join('\n');
         return inner + (nexts.length > 0 ? '\n' : '') + nexts.map(n => createCursorsForStateFields(params, topLevelImports, parentStateKey, n.data, n.state, bobfluxPrefix, n.externalFileAlias, n.prefix)).filter(n => n).join('\n');
     }
@@ -120,9 +122,11 @@ function createRootKey(key: string, bobfluxPrefix: string): string {
 `;
 }
 
-function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, withRoot: boolean): string {
+function createFieldCursor(prefix: string, key: string, fieldName: string, bobfluxPrefix: string, typeName: string, withRoot: boolean, f: tsa.IStateFieldData): string {
+    let undefinedDef = f.type.some(t => t.name === 'undefined') ? `,
+    isUndefinable: true` : '';
     return `export const ${prefix === null ? fieldName : nameUnifier.getStatePrefixFromKeyPrefix(prefix, fieldName)}Cursor: ${bobfluxPrefix}.ICursor<${typeName}> = {
-    key: ${withRoot ? `rootKey + '.${key}'` : `'${key}'`}
+    key: ${withRoot ? `rootKey + '.${key}'` : `'${key}'`}${undefinedDef}
 };
 `;
 }
