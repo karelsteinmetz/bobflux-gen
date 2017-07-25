@@ -1,6 +1,24 @@
 CHANGELOG
 ===
 
+0.15.0
+New Features
+-
+
+Added support for an isUndefinable flag in cursors. The isUndefinable means that value under the cursor can be undefined and the cursor will not be recognized as invalid.
+
+0.14.0
+New Features
+-
+
+Added support union & optional types
+
+0.13.0
+New Features
+-
+
+Fixed issues for TS 2.2
+
 0.12.0
 New Features
 -
