@@ -135,7 +135,6 @@ export function composeCursorKey(...parts: string[]): string {
 export function createFullImports(stateAlias: string, stateFilePath: string, imports: tsa.IImportData[]): string {
     return `import * as ${stateAlias} from '${stateFilePath}';
 ${createImports(imports)}
-
 export * from '${stateFilePath}';
 
 `;
@@ -143,8 +142,9 @@ export * from '${stateFilePath}';
 
 export const createUnusedAlias = tsa.createUnusedAlias;
 
-export function createImports(imports: tsa.IImportData[]): string {
-    return imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join('\n');
+function createImports(imports: tsa.IImportData[]): string {
+    let s = imports.map(i => `import * as ${i.prefix} from '${i.relativePath}';`).join('\n');
+    return s ? s + '\n' : '';
 }
 
 export function isFieldEnumType(fieldType: string, enums: tsa.IEnumData[]): boolean {
