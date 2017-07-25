@@ -538,6 +538,46 @@ export class ApplicationStateBuilder {
         });
     });
 
+    describe('file stateWithUnusedImport', () => {
+        beforeEach(() => {
+            testCase = {
+                do: () => new Promise<string>((f, r) => {
+                    bg.default(aProject('IApplicationState', './stateWithUnusedImport.ts', (filename: string, b: Buffer) => {
+                        if (filename.indexOf('stateWithUnusedImport') !== -1)
+                            f(b.toString('utf8'));
+                    }), tsa.create(logger), logger).runRecurse();
+                })
+            };
+        })
+
+        it('generate bobflux import', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as f from '../flux';`);
+                    done();
+                });
+        });
+
+        it('generate used import', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).toContain(`import * as is from './inner/innerState';`);
+                    done();
+                });
+        });
+
+        it('does not generate unused import', (done) => {
+            testCase
+                .do()
+                .then(text => {
+                    expect(text).not.toContain(`innerType`);
+                    done();
+                });
+        });
+    });
+
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void, relativePath: string = null, version: string = 'AVersion'): gb.IGenerationProject {
         return {
             version: version,
