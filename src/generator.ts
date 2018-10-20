@@ -100,7 +100,7 @@ export function getExternalAlias(type: string, data: tsa.IStateSourceData, topLe
         {
             prefix: topLevelImports[dep.fullPath].prefix,
             sourceType: typePath[0] === dep.prefix
-                ? typePath[1]
+                ? typePath.slice(1).join('.')
                 : dep.types.find(t => t.targetType === typePath[0]).sourceType
         }
     );
