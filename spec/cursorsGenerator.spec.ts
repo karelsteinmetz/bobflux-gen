@@ -804,7 +804,27 @@ export default rootCursor;
             expect(g.createCursorsFilePath('c:/app/state.ts'))
                 .toBe('c:/app/state.cursors.ts');
         });
-    })
+    });
+
+    describe('reExported type', () => {
+        beforeEach(() => {
+            testCase = testCaseRunRecurse(
+                'IApplicationState',
+                './stateWithExternalTypeReExported.ts',
+                'stateWithExternalType'
+            );
+        });
+
+        it('generate curosr with correct state chain for reexported InnerState', done => {
+            testCase.do().then(text => {
+                expect(text).toContain(`
+export const externalTypeReexportedCursor: f.ICursor<ExportType.SomeOtherType.IInnerState> = {
+    key: 'externalTypeReexported'
+};`);
+                done();
+            });
+        });
+    });
 
     function aProject(appStateName: string, appFilePath: string, writeFileCallback: (filename: string, b: Buffer) => void, version: string = 'AVersion'): gb.IGenerationProject {
         return {
